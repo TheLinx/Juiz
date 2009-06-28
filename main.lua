@@ -5,19 +5,25 @@ config = {
             nick = 'Juiz',
             owner = 'TheLinx',
             channels = {'kiiwii'},
-            version = 'Juiz IRC Bot r2',
+            version = 'Juiz IRC Bot r3',
             trigger = '.'
 }
 local alive = true
 local lastsend = 0
-modules = {}
-sendqueue = {}
+local modules = {'welcome', 'admin'}
+local sendqueue = {}
+hook,hooks,ccmd,ccmds = {},{},{},{}
 
 function msg(mtype, mtext)
-    if mtype ~= "CHATLOG" then return end
-    print(mtype .. ": " .. mtext)
+    if mtype == "CHATLOG" or mtype == "INSTALL" then
+        print(mtext)
+    end
+    if mtype == "ERROR" or mtype == "NOTIFY" then
+        print(mtype..": "..mtext)
+    end
+    if mtype == "TRACE" then print(mtype..": "..mtext) end
 end
-function send(stext)
+local function send(stext)
     local sbytes, serror = tcp:send(stext)
     if sbytes ~= stext:len() then
         return false, serror or "unknown error"
@@ -29,9 +35,31 @@ function qsend(stext)
     table.insert(sendqueue, stext.."\r\n")
 end
 function say(srecp, stext)
-    table.insert(sendqueue, string.format("PRIVMSG %s :%s\n\n", srecp, stext))
+    qsend(string.format("PRIVMSG %s :%s", srecp, stext))
 end
-function connect()
+function hook.Add(trigger, func)
+    table.insert(hooks, {trigger, func})
+end
+function ccmd.Add(trigger, func)
+    table.insert(ccmds, {trigger, func})
+end
+function hook.Call(trigger, ...)
+    for _,v in pairs(hooks) do
+        if v[1] == trigger then
+            v[2](...)
+        end
+    end
+end
+function ccmd.Call(trigger, ...)
+    for _,v in pairs(ccmds) do
+        if v[1]:lower() == trigger:lower() then
+            return v[2](...)
+        else
+            msg("TRACE", string.format("Trigger %s does not match command %s", trigger, v[1]))
+        end
+    end
+end
+local function connect()
     tcp:settimeout(1,"t")
     tcp:settimeout(1,"b")
     -- Connect to the server
@@ -50,13 +78,13 @@ function connect()
     local chansuccess = 0
     for _,channel in pairs(config.channels) do
         send(string.format("JOIN #%s\r\n", channel))
-        send(string.format("PRIVMSG #%s :Hi everyone! I'm the new bot. I have %d loaded modules.\r\n", channel, #modules))
-        msg("NOTIFY", string.format("Joined channel %s.", channel))
+        send(string.format("PRIVMSG #%s :Hi everyone! I'm the new bot.\r\n", channel, #modules))
+        --msg("NOTIFY", string.format("Joined channel %s.", channel))
         chansuccess = chansuccess + 1
     end
-    say(config.owner, string.format("Initialized. I have joined %d channels.", chansuccess))
+    --say(config.owner, string.format("Initialized. I have joined %d channels.", chansuccess))
 end
-function mainloop()
+local function mainloop()
     local rdata, rerror = tcp:receive("*l")
     if not rdata and rerror and #rerror > 0 and rerror ~= "timeout" then
         msg("ERROR", string.format("Lost connection to %s:%d: %s", config.server, config.port, rerror))
@@ -66,7 +94,7 @@ function mainloop()
     end
     return processdata(rdata)
 end
-function queue()
+local function queue()
     if sendqueue[1] and os.time() - lastsend > (#sendqueue / 2) then
         return send(table.remove(sendqueue,1))
     end
@@ -75,64 +103,55 @@ end
 function processdata(pdata)
     local origin, command, recp, param = string.match(pdata, "^:(%S+) (%S+) (%S+)[^:]*:(.+)")
     if not origin then origin, command, param = string.match(pdata, "^:(%S+) (%S+)[^:]*:(.+)") end
+    if not origin then origin, command, param = string.match(pdata, "^:(%S+) (%S+) (%S+)(.*)") end
     if not origin then command, param = string.match(pdata, "^:([^:]+ ):(.+)") end
     if not command then
         msg("TRACE", "Unparsed: " .. pdata)
         return true
     end
-    --msg("TRACE", string.format("origin: %s, command: %s, recp: %s, param: %s", origin or "nil", command or "nil", recp or "nil", param or "nil"))
+    msg("TRACE", string.format("origin: %s, command: %s, recp: %s, param: %s", origin or "nil", command or "nil", recp or "nil", param or "nil"))
+    local onick,ohost = origin:match("^(%S+)!(%S+)")
     if command:lower() == "privmsg" then
-        local onick,ohost = origin:match("^(%S+)!(%S+)")
         if recp:lower() == config.nick:lower() then
             if param:match("[^%w]?VERSION[^%w]?") then
                 say(onick, config.version)
                 msg("NOTIFY", string.format("Version requested from %s", onick, config.version))
+            else
+                msg("CHATLOG", string.format("PM <%s>: %s", onick, param))
             end
-            msg("CHATLOG", string.format("PM <%s>: %s", onick, param))
         else
             if param:sub(config.trigger:len(),config.trigger:len()) == config.trigger then
                 local param = param:sub(config.trigger:len()+1)
                 if param:find(' ') then
-                    botcmd,args = param:match("^(%S+) (%S+)")
+                    botcmd,args = param:match("^(%S+) (.*)")
+                    msg("TRACE", string.format("Command %s:%s triggered by %s", botcmd, args, onick))
                 else
                     botcmd = param
+                    msg("TRACE", string.format("Command %s triggered by %s", botcmd, onick))
                 end
-                msg("NOTIFY", string.format("Command %s", param))
-                if modules[botcmd] ~= nil then
-                    modules[botcmd](recp, onick, param)
-                else
+                if not ccmd.Call(botcmd, recp, onick, args or nil) then
                     say(recp, "Sorry, I don't have the command \""..botcmd.."\".")
                 end
             end
             msg("CHATLOG", string.format("<%s>: %s", onick, param))
         end
+    elseif command:lower() == "join" then
+        hook.Call("join", onick, param, ohost)
+    elseif command:lower() == "part" then
+        hook.Call("part", onick, param, ohost)
     end
     return true
 end
 
-function modules.quit(recp, sender)
-    if sender:lower() ~= config.owner:lower() then
-        say(recp, sender..": You're not my owner.")
-        return true
-    end
-    qsend("QUIT")
-end
-function modules.install(recp, sender, param)
-    if sender:lower() ~= config.owner:lower() then
-        say(recp, sender..": You're not my owner.")
-        return true
-    end
-    local param = param:sub(param:find(' ')+1)
-    if io.open("modules/"..param..".lua") then
-        require("modules."..param)
-        say(recp, sender..": Done!")
-        return true
+-- Let's load the modules
+for _,file in pairs(modules) do
+    file = tostring(file)
+    if io.open("modules/"..file..".lua") then
+        require("modules."..file)
     else
-        say(recp, sender..": Sorry, I couldn't find that file.")
-        return true
+        msg("ERROR", string.format("Could not load module %s", file))
     end
 end
-
 -- All functions set, time to connect
 if connect() then
     alive = false

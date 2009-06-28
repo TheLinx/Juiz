@@ -5,12 +5,12 @@ config = {
             nick = 'Juiz',
             owner = 'TheLinx',
             channels = {'kiiwii'},
-            version = 'Juiz IRC Bot r3',
+            version = 'Juiz IRC Bot r4',
             trigger = '.'
 }
 local alive = true
 local lastsend = 0
-local modules = {'welcome', 'admin'}
+local modules = {'webinstall', 'welcome', 'admin'}
 local sendqueue = {}
 hook,hooks,ccmd,ccmds = {},{},{},{}
 
@@ -21,7 +21,7 @@ function msg(mtype, mtext)
     if mtype == "ERROR" or mtype == "NOTIFY" then
         print(mtype..": "..mtext)
     end
-    if mtype == "TRACE" then print(mtype..": "..mtext) end
+    --if mtype == "TRACE" then print(mtype..": "..mtext) end
 end
 local function send(stext)
     local sbytes, serror = tcp:send(stext)
@@ -105,18 +105,35 @@ function processdata(pdata)
     if not origin then origin, command, param = string.match(pdata, "^:(%S+) (%S+)[^:]*:(.+)") end
     if not origin then origin, command, param = string.match(pdata, "^:(%S+) (%S+) (%S+)(.*)") end
     if not origin then command, param = string.match(pdata, "^:([^:]+ ):(.+)") end
+    if not command then command, param = string.match(pdata, "^(%S+) :(%S+)") end
     if not command then
         msg("TRACE", "Unparsed: " .. pdata)
         return true
     end
     msg("TRACE", string.format("origin: %s, command: %s, recp: %s, param: %s", origin or "nil", command or "nil", recp or "nil", param or "nil"))
-    local onick,ohost = origin:match("^(%S+)!(%S+)")
-    if command:lower() == "privmsg" then
-        if recp:lower() == config.nick:lower() then
+    if origin ~= nil then onick,ohost = origin:match("^(%S+)!(%S+)") end
+    if command:lower() == "ping" then
+        qsend(string.format("PONG %s", param))
+        msg("NOTIFY", "Ping requested from server")
+    elseif command:lower() == "privmsg" then
+        if recp:lower() == config.nick:lower() and onick:lower() ~= config.nick:lower() then
             if param:match("[^%w]?VERSION[^%w]?") then
                 say(onick, config.version)
-                msg("NOTIFY", string.format("Version requested from %s", onick, config.version))
+                msg("NOTIFY", string.format("Version requested from %s", onick))
+            elseif param:match("[^%w]?PING[^%w]?") then
+                qsend(string.format("PONG %s", ohost))
+                msg("NOTIFY", string.format("Ping requested from %s", onick))
             else
+                if param:find(' ') then
+                    botcmd,args = param:match("^(%S+) (.*)")
+                    msg("TRACE", string.format("Command %s:%s triggered by %s", botcmd, args, onick))
+                else
+                    botcmd = param
+                    msg("TRACE", string.format("Command %s triggered by %s", botcmd, onick))
+                end
+                if not ccmd.Call(botcmd, onick, onick, args or nil) then
+                    say(onick, "Sorry, I don't have the command \""..botcmd.."\".")
+                end
                 msg("CHATLOG", string.format("PM <%s>: %s", onick, param))
             end
         else
@@ -133,9 +150,12 @@ function processdata(pdata)
                     say(recp, "Sorry, I don't have the command \""..botcmd.."\".")
                 end
             end
-            msg("CHATLOG", string.format("<%s>: %s", onick, param))
+            msg("CHATLOG", string.format("%s <%s>: %s", recp, onick, param))
         end
     elseif command:lower() == "join" then
+        if onick:lower() == config.nick:lower() then
+            msg("NOTIFY", string.format("Joined channel %s", param))
+        end
         hook.Call("join", onick, param, ohost)
     elseif command:lower() == "part" then
         hook.Call("part", onick, param, ohost)

@@ -152,7 +152,7 @@ function processdata(pdata)
                     msg("TRACE", string.format("Command %s triggered by %s", botcmd, onick))
                 end
                 if not ccmd.Call(botcmd, recp, onick, args or nil) then
-                    say(recp, "Sorry, I don't have the command \""..botcmd.."\".")
+                    --say(recp, "Sorry, I don't have the command \""..botcmd.."\".")
                 end
             end
             msg("CHATLOG", string.format("%s <%s>: %s", recp, onick, param))

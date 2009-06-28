@@ -32,7 +32,7 @@ function cmd_lastfm(recp, sender, user)
             end
         end
     end
-    say(recp, string.format("%s is listening to %s - %s", user, artist, song)))
+    say(recp, string.format("%s is listening to %s - %s", user, artist, song))
 end
 
 ccmd.Add("lastfm", cmd_lastfm)

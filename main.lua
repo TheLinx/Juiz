@@ -41,6 +41,11 @@ function hook.Add(trigger, func)
     table.insert(hooks, {trigger, func})
 end
 function ccmd.Add(trigger, func)
+    for k,v in pairs(ccmds) do
+        if v[1]:lower() == trigger:lower() then
+            table.remove(ccmds, k)
+        end
+    end
     table.insert(ccmds, {trigger, func})
 end
 function hook.Call(trigger, ...)

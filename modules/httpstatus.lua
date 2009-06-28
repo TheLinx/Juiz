@@ -1,7 +1,7 @@
 local http = require("socket.http")
 function cmd_httpstatus(recp, sender, url)
     local _,_,_,status = http.request(url)
-    say(string.format("%s: HTTP Status of %s is %s", sender, url, status))
+    say(string.format("%s: HTTP Status of %s is %s", sender, url, status or "not available"))
     return true
 end
 

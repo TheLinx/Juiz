@@ -151,7 +151,11 @@ function processdata(pdata)
         else
             if param:sub(1,config.trigger:len()) == config.trigger or
                param:sub(1,string.format("%s: ",config.nick):len()):lower() == string.format("%s: ",config.nick):lower() then
-                local param = param:sub(config.trigger:len()+1)
+                if param:sub(1,config.trigger:len()) == config.trigger then
+                    param = param:sub(config.trigger:len()+1)
+                else
+                    param = param:sub(string.format("%s: ",config.nick)+1)
+                end
                 if param:find(' ') then
                     botcmd,args = param:match("^(%S+) (.*)")
                     msg("TRACE", string.format("Command %s:%s triggered by %s", botcmd, args, onick))
@@ -160,7 +164,7 @@ function processdata(pdata)
                     msg("TRACE", string.format("Command %s triggered by %s", botcmd, onick))
                 end
                 if not ccmd.Call(botcmd, recp, onick, args or nil) and
-                param:sub(string.format("%s: ",config.nick):len(),string.format("%s: ",config.nick):len()) == string.format("%s: ",config.nick) then
+                param:sub(1,string.format("%s: ",config.nick):len()):lower() == string.format("%s: ",config.nick):lower() then
                     reply(recp, onick, string.format("Sorry, I don't have the command \"%s\".", botcmd))
                 end
             else

@@ -93,8 +93,9 @@ local function connect()
         qsend(string.format("PRIVMSG #%s :Hi everyone! I'm the new bot.", channel, #modules))
         chansuccess = chansuccess + 1
     end
+    return true
 end
-local function mainloop()
+function mainloop()
     local rdata, rerror = tcp:receive("*l")
     if not rdata and rerror and #rerror > 0 and rerror ~= "timeout" then
         msg("ERROR", string.format("Lost connection to %s:%d: %s", config.server, config.port, rerror))
@@ -168,7 +169,7 @@ function processdata(pdata)
             else
                 msg("TRACE", param:sub(1,string.format("%s: ",config.nick):len()):lower().." ~= "..string.format("%s: ",config.nick):lower())
             end
-            msg("CHATLOG", string.format("%s <%s>: %s", recp, onick, param))
+            msg("CHATLOG", string.format("%s <%s>: %s", recp, onick or "nil - this shouldn't happen", param))
         end
         hook.Call("message", onick, recp, param)
     elseif command:lower() == "join" then
@@ -178,13 +179,23 @@ function processdata(pdata)
         hook.Call("join", onick, param, ohost)
     elseif command:lower() == "part" then
         hook.Call("part", onick, param, ohost)
+    elseif string.find(param, "identified to services") then nickidentified = true
+    elseif string.find(param, "End of /WHOIS") then nickidentified = false
     end
     return true
+end
+function isauthed(nick)
+    nickidentified = nil
+    qsend(string.format("WHOIS %s", nick))
+    while nickidentified == nil do queue(); msg("TRACE", "Waiting for /WHOIS response..."); mainloop() end
+    if nickidentified == true then return true else return false end
 end
 function isowner(nick)
     local owner = false
     for _,v in pairs(config.admins) do
-        if nick:lower() == v:lower() then owner = true end
+        if nick:lower() == v:lower() then
+            if isauthed(v) then owner = true end
+        end
     end
     return owner
 end
@@ -203,11 +214,11 @@ for _,file in pairs(modules) do
     end
 end
 -- All functions set, time to connect
-if connect() then
+if not connect() then
     alive = false
 end
 -- Now that we're alive and well, let's start receiving data
-while alive do
+while alive == true do
     if not mainloop() then
         print("Shutting down...")
         alive = false

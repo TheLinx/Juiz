@@ -1,26 +1,6 @@
 require('math')
 rex = require('rex_pcre')
 
--- First we make an alias of all of the normal functions
-
-abs = math.abs
-sin = math.sin
-cos = math.cos
-tan = math.tan
-acos = math.acos
-asin = math.asin
-atan = math.atan
-ceil = math.ceil
-deg = math.deg
-floor = math.floor
-rad = math.rad
-mod = math.fmod
-pi = math.pi
-rand = math.random
-pow = math.pow
-exp = math.exp
-sqrt = math.sqrt
-
 -- We reimplement log because we want it to behave slightly different
 
 function log(x,base)
@@ -30,6 +10,12 @@ function log(x,base)
       return math.log(x)
    end
 end
+
+-- We make an alias of all of the normal functions
+for k,v in pairs(math) do
+    _G[k] = v
+end
+
 
 -- This is the regular expressions that validates the input. Protect your eyes
 
@@ -44,7 +30,7 @@ function cmd_calc(recp, sender, equ)
        -- We use loadstring to compile the function
        if pcall(function () f = assert(loadstring('result = '..equ)) end) then
          f()
-         say(recp, equ..' = '..result)
+         say(recp, equ..' = '..result or 'nil')
        else
          say(recp, sender..': Invald input')
        end
@@ -53,7 +39,7 @@ function cmd_calc(recp, sender, equ)
     end
 
     return true
- end
+end
 
 ccmd.Add("c", cmd_calc)
 msg("INSTALL", "Installed module Calculator (http://code.google.com/p/juiz/wiki/calculator)")

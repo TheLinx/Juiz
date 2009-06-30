@@ -149,8 +149,8 @@ function processdata(pdata)
                 msg("CHATLOG", string.format("PM <%s>: %s", onick, param))
             end
         else
-            if param:sub(config.trigger:len(),config.trigger:len()) == config.trigger or
-               param:sub(string.format("%s: ",config.nick):len(),string.format("%s: ",config.nick):len()) == string.format("%s: ",config.nick) then
+            if param:sub(1,config.trigger:len()) == config.trigger or
+               param:sub(1,string.format("%s: ",config.nick):len()) == string.format("%s: ",config.nick) then
                 local param = param:sub(config.trigger:len()+1)
                 if param:find(' ') then
                     botcmd,args = param:match("^(%S+) (.*)")

@@ -40,7 +40,7 @@ end
 function reply(rrecp, rsender, rext)
     if rrecp == rsender then
         qsend(string.format("PRIVMSG %s :%s", rrecp, rtext))
-    elseif
+    else
         qsend(string.format("PRIVMSG %s :%s: %s", rrecp, rsender, rtext))
     end
 end

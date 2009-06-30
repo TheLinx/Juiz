@@ -154,7 +154,7 @@ function processdata(pdata)
                 if param:sub(1,config.trigger:len()) == config.trigger then
                     param = param:sub(config.trigger:len()+1)
                 else
-                    param = param:sub(string.format("%s: ",config.nick)+1)
+                    param = param:sub(string.format("%s: ",config.nick):len()+1)
                 end
                 if param:find(' ') then
                     botcmd,args = param:match("^(%S+) (.*)")

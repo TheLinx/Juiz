@@ -37,7 +37,7 @@ end
 function say(srecp, stext)
     qsend(string.format("PRIVMSG %s :%s", srecp, stext))
 end
-function reply(rrecp, rsender, rext)
+function reply(rrecp, rsender, rtext)
     if rrecp == rsender then
         qsend(string.format("PRIVMSG %s :%s", rrecp, rtext))
     else

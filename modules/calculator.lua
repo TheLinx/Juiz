@@ -1,5 +1,5 @@
 --[[
-Copyright (c) 2009, Henrik "henrikb4" Hansen (henrikb4@gmail.com)
+Copyright (c) 2009, Henrik "henrikb4" Enggaard Hansen (henrikb4@gmail.com)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY HENRIK ENGGAARD HANSEN ''AS IS'' AND ANY
 EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+DISCLAIMED. IN NO EVENT SHALL HENRIK ENGGAARD HANSEN BE LIABLE FOR ANY
 DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -27,24 +27,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 require('math')
 rex = require('rex_pcre')
 
--- We reimplement log because we want it to behave slightly different
-
-function log(x,base)
-    if base == 10 then
-        return math.log10(x)
-    else
-        return math.log(x)
-    end
-end
-
 -- We make an alias of all of the normal functions
 for k,v in pairs(math) do
     _G[k] = v
 end
 
--- This is the regular expressions that validates the input. Protect your eyes
+-- We reimplement log because we want it to behave slightly different
 
-regex = '^(?:ceil|abs|floor|mod|exp|log|pow|sqrt|acos|asin|atan|cos|sin|tan|deg|rad|rand|pi|\\(|\\)|-|\\+|\\*|/|\\d|\\.|\\^|\\x2C| )+$'
+function log(x,base)
+   if base == 10 then
+      return math.log10(x)
+   else
+      return math.log(x)
+   end
+end
+
+-- This is the regular expressions that validates the input. Protect your eyes.
+
+regex = '^(?:(?:ceil|abs|floor|mod|exp|log|pow|sqrt|acos|asin|atan|cos|sin|tan|deg|rad|random)\\(|pi|\\(|\\)|-|\\+|\\*|/|\\d|\\.|\\^|\\x2C| )+$'
 
 -- Finally, we can define the function that we call in the chat
 
@@ -52,18 +52,18 @@ function cmd_calc(recp, sender, equ)
     result = 'ERROR'
     match = rex.match(equ, regex)
     if match == equ then
-        -- We use loadstring to compile the function
-        if pcall(function () f = assert(loadstring('result = '..equ)) end) then
-            f()
-            reply(recp, sender, equ..' = '..result or 'nil')
-        else
-            reply(recp, sender, 'Invald input')
-        end
+       -- We use loadstring to compile the function
+       if pcall(function () f = assert(loadstring('result = '..equ)) end) then
+         f()
+         say(recp, sender..': '..equ..' = '..result)
+       else
+         say(recp, sender..': Invald input')
+       end
     else
-        reply(recp, sender, 'Invalid input')
+       say(recp, sender..': Invalid input')
     end
+   
     return true
-end
+ end
 
 ccmd.Add("c", cmd_calc)
-msg("INSTALL", "Installed module Calculator (http://code.google.com/p/juiz/wiki/calculator)")

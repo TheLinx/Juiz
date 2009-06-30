@@ -21,7 +21,7 @@ function msg(mtype, mtext)
     if mtype == "ERROR" or mtype == "NOTIFY" then
         print(mtype..": "..mtext)
     end
-    --if mtype == "TRACE" then print(mtype..": "..mtext) end
+    if mtype == "TRACE" then print(mtype..": "..mtext) end
 end
 local function send(stext)
     local sbytes, serror = tcp:send(stext)
@@ -150,7 +150,7 @@ function processdata(pdata)
             end
         else
             if param:sub(1,config.trigger:len()) == config.trigger or
-               param:sub(1,string.format("%s: ",config.nick):len()) == string.format("%s: ",config.nick) then
+               param:sub(1,string.format("%s: ",config.nick):len()):lower() == string.format("%s: ",config.nick):lower() then
                 local param = param:sub(config.trigger:len()+1)
                 if param:find(' ') then
                     botcmd,args = param:match("^(%S+) (.*)")
@@ -163,7 +163,8 @@ function processdata(pdata)
                 param:sub(string.format("%s: ",config.nick):len(),string.format("%s: ",config.nick):len()) == string.format("%s: ",config.nick) then
                     reply(recp, onick, string.format("Sorry, I don't have the command \"%s\".", botcmd))
                 end
-            end
+            else
+                msg("TRACE", param:sub(1,string.format("%s: ",config.nick):len()):lower().." ~= "..string.format("%s: ",config.nick):lower())
             msg("CHATLOG", string.format("%s <%s>: %s", recp, onick, param))
         end
     elseif command:lower() == "join" then

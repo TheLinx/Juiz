@@ -172,6 +172,7 @@ function processdata(pdata)
             end
             msg("CHATLOG", string.format("%s <%s>: %s", recp, onick, param))
         end
+        hook.Call("message", onick, recp, param)
     elseif command:lower() == "join" then
         if onick:lower() == config.nick:lower() then
             msg("NOTIFY", string.format("Joined channel %s", param))

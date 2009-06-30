@@ -4,18 +4,17 @@ rex = require('rex_pcre')
 -- We reimplement log because we want it to behave slightly different
 
 function log(x,base)
-   if base == 10 then
-      return math.log10(x)
-   else
-      return math.log(x)
-   end
+    if base == 10 then
+        return math.log10(x)
+    else
+        return math.log(x)
+    end
 end
 
 -- We make an alias of all of the normal functions
 for k,v in pairs(math) do
     _G[k] = v
 end
-
 
 -- This is the regular expressions that validates the input. Protect your eyes
 
@@ -27,17 +26,16 @@ function cmd_calc(recp, sender, equ)
     result = 'ERROR'
     match = rex.match(equ, regex)
     if match == equ then
-       -- We use loadstring to compile the function
-       if pcall(function () f = assert(loadstring('result = '..equ)) end) then
-         f()
-         say(recp, equ..' = '..result or 'nil')
-       else
-         say(recp, sender..': Invald input')
-       end
+        -- We use loadstring to compile the function
+        if pcall(function () f = assert(loadstring('result = '..equ)) end) then
+            f()
+            reply(recp, sender, equ..' = '..result or 'nil')
+        else
+            reply(recp, sender, 'Invald input')
+        end
     else
-       say(recp, sender..': Invalid input')
+        reply(recp, sender, 'Invalid input')
     end
-
     return true
 end
 

@@ -1,7 +1,7 @@
 local http = require("socket.http")
 function cmd_webinstall(recp, sender, file)
     if sender:lower() ~= config.owner:lower() then
-        say(recp, sender..": You're not my owner.")
+        reply(recp, sender, "You're not my owner.")
         return true
     end
     local fcon = http.request(file)
@@ -10,7 +10,7 @@ function cmd_webinstall(recp, sender, file)
     fopn:close()
     msg("TRACE", string.format("Downloaded this data: %s", fcon))
     require("modules.tmp")
-    say(recp, sender..": Done!")
+    reply(recp, sender, "Done!")
     return true
 end
 

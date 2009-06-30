@@ -5,7 +5,7 @@ config = {
             nick = 'Juiz',
             owner = 'TheLinx',
             channels = {'kiiwii'},
-            version = 'Juiz IRC Bot r4',
+            version = 'Juiz IRC Bot r5',
             trigger = '.'
 }
 local alive = true
@@ -36,6 +36,13 @@ function qsend(stext)
 end
 function say(srecp, stext)
     qsend(string.format("PRIVMSG %s :%s", srecp, stext))
+end
+function reply(rrecp, rsender, rext)
+    if rrecp == rsender then
+        qsend(string.format("PRIVMSG %s :%s", rrecp, rtext))
+    elseif
+        qsend(string.format("PRIVMSG %s :%s: %s", rrecp, rsender, rtext))
+    end
 end
 function hook.Add(trigger, func)
     table.insert(hooks, {trigger, func})
@@ -82,8 +89,8 @@ local function connect()
     msg("NOTIFY", "Sent login.")
     local chansuccess = 0
     for _,channel in pairs(config.channels) do
-        send(string.format("JOIN #%s\r\n", channel))
-        send(string.format("PRIVMSG #%s :Hi everyone! I'm the new bot.\r\n", channel, #modules))
+        qsend(string.format("JOIN #%s", channel))
+        qsend(string.format("PRIVMSG #%s :Hi everyone! I'm the new bot.", channel, #modules))
         --msg("NOTIFY", string.format("Joined channel %s.", channel))
         chansuccess = chansuccess + 1
     end
@@ -119,7 +126,7 @@ function processdata(pdata)
     if origin ~= nil then onick,ohost = origin:match("^(%S+)!(%S+)") end
     if command:lower() == "ping" then
         qsend(string.format("PONG %s", param))
-        msg("NOTIFY", "Ping requested from server")
+        msg("TRACE", "Ping requested from server")
     elseif command:lower() == "privmsg" then
         if recp:lower() == config.nick:lower() and onick:lower() ~= config.nick:lower() then
             if param:match("[^%w]?VERSION[^%w]?") then
@@ -142,7 +149,8 @@ function processdata(pdata)
                 msg("CHATLOG", string.format("PM <%s>: %s", onick, param))
             end
         else
-            if param:sub(config.trigger:len(),config.trigger:len()) == config.trigger then
+            if param:sub(config.trigger:len(),config.trigger:len()) == config.trigger or
+               param:sub(string.format("%s: ",config.nick):len(),string.format("%s: ",config.nick):len()) == string.format("%s: ",config.nick) then
                 local param = param:sub(config.trigger:len()+1)
                 if param:find(' ') then
                     botcmd,args = param:match("^(%S+) (.*)")
@@ -151,8 +159,9 @@ function processdata(pdata)
                     botcmd = param
                     msg("TRACE", string.format("Command %s triggered by %s", botcmd, onick))
                 end
-                if not ccmd.Call(botcmd, recp, onick, args or nil) then
-                    --say(recp, "Sorry, I don't have the command \""..botcmd.."\".")
+                if not ccmd.Call(botcmd, recp, onick, args or nil) and
+                param:sub(string.format("%s: ",config.nick):len(),string.format("%s: ",config.nick):len()) == string.format("%s: ",config.nick) then
+                    reply(recp, onick, string.format("Sorry, I don't have the command \"%s\".", botcmd))
                 end
             end
             msg("CHATLOG", string.format("%s <%s>: %s", recp, onick, param))

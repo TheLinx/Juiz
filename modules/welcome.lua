@@ -5,4 +5,4 @@ local function welcome(recp, channel)
 end
 hook.Add("join", welcome)
 
-msg("INSTALL", "Installed module tell.lua")
+msg("INSTALL", "Installed Welcomer (http://code.google.com/p/juiz/wiki/welcomer)")

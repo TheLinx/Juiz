@@ -3,7 +3,7 @@ config = {
             server = 'irc.freenode.net',
             port = 6667,
             nick = 'Juiz',
-            owner = 'TheLinx',
+            admins = {'TheLinx'},
             channels = {'kiiwii'},
             version = 'Juiz IRC Bot r5',
             trigger = '.'
@@ -91,10 +91,8 @@ local function connect()
     for _,channel in pairs(config.channels) do
         qsend(string.format("JOIN #%s", channel))
         qsend(string.format("PRIVMSG #%s :Hi everyone! I'm the new bot.", channel, #modules))
-        --msg("NOTIFY", string.format("Joined channel %s.", channel))
         chansuccess = chansuccess + 1
     end
-    --say(config.owner, string.format("Initialized. I have joined %d channels.", chansuccess))
 end
 local function mainloop()
     local rdata, rerror = tcp:receive("*l")
@@ -182,6 +180,13 @@ function processdata(pdata)
         hook.Call("part", onick, param, ohost)
     end
     return true
+end
+function isowner(nick)
+    local owner = false
+    for _,v in pairs(config.admins) do
+        if nick:lower() == v:lower() then owner = true end
+    end
+    return owner
 end
 
 -- Let's load the modules

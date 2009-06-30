@@ -1,13 +1,13 @@
-function cmd_quit(recp, sender)
-    if sender:lower() ~= config.owner:lower() then
-        reply(recp, sender, "You're not my owner.")
+local function cmd_quit(recp, sender)
+    if not isowner(sender) then
+        reply(recp, sender, "You're not authorized to use that command.")
         return true
     end
     qsend("QUIT")
 end
-function cmd_install(recp, sender, file)
-    if sender:lower() ~= config.owner:lower() then
-        reply(recp, sender, "You're not my owner.")
+local function cmd_install(recp, sender, file)
+    if not isowner(sender) then
+        reply(recp, sender, "You're not authorized to use that command.")
         return true
     end
     if not file then

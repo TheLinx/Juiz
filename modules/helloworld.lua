@@ -1,4 +1,4 @@
-function cmd_hello(recp, sender)
+local function cmd_hello(recp, sender)
     reply(recp, sender, "Hello World!")
     return true
 end

@@ -1,8 +1,11 @@
 local http = require("socket.http")
-function cmd_webinstall(recp, sender, file)
-    if sender:lower() ~= config.owner:lower() then
-        reply(recp, sender, "You're not my owner.")
+local function cmd_webinstall(recp, sender, file)
+    if not isowner(sender) then
+        reply(recp, sender, "You're not authorized to use that command.")
         return true
+    end
+    if not file then
+        reply(recp, sender, "Insufficient arguments supplied!")
     end
     local fcon = http.request(file)
     local fopn = io.open("modules/tmp.lua", "w+")

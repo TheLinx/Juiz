@@ -48,7 +48,7 @@ regex = '^(?:(?:ceil|abs|floor|mod|exp|log|pow|sqrt|acos|asin|atan|cos|sin|tan|d
 
 -- Finally, we can define the function that we call in the chat
 
-function cmd_calc(recp, sender, equ)
+local function cmd_calc(recp, sender, equ)
     result = 'ERROR'
     match = rex.match(equ, regex)
     if match == equ then

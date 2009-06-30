@@ -13,7 +13,7 @@ local function explode(div,str)
   return arr
 end
 
-function cmd_lastfm(recp, sender, user)
+local function cmd_lastfm(recp, sender, user)
     local lastfmresponse = http.request(string.format("http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=%s&api_key=eb9a55b43823c2bc20dc1ece7ee7e9e2", user))
     local artist,song = "",""
     resp = lxp.lom.parse(lastfmresponse)

@@ -1,4 +1,4 @@
-local http = require("socket.http")
+local http = safe_require("socket.http")
 local function cmd_webinstall(recp, sender, file)
     if not isowner(sender) then
         reply(recp, sender, "You're not authorized to use that command.")

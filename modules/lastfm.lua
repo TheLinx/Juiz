@@ -1,5 +1,5 @@
-require("lxp.lom")
-http = require("socket.http")
+safe_require("lxp.lom")
+http = safe_require("socket.http")
 
 local function explode(div,str)
   if (div=='') then return false end

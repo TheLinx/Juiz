@@ -188,6 +188,10 @@ function isowner(nick)
     end
     return owner
 end
+function safe_require(file) -- Thanks to deryni and hoelzro in #lua@freenode
+    local ret, val = pcall(require, file)
+    return ret and val or nil
+end
 
 -- Let's load the modules
 for _,file in pairs(modules) do

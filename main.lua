@@ -165,6 +165,7 @@ function processdata(pdata)
                 end
             else
                 msg("TRACE", param:sub(1,string.format("%s: ",config.nick):len()):lower().." ~= "..string.format("%s: ",config.nick):lower())
+            end
             msg("CHATLOG", string.format("%s <%s>: %s", recp, onick, param))
         end
     elseif command:lower() == "join" then

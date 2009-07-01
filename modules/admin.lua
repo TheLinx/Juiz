@@ -15,7 +15,7 @@ local function cmd_install(recp, sender, file, host)
         return true
     end
     if io.open("modules/"..file..".lua") then
-        require("modules."..file)
+        dofile("modules/"..file..".lua")
         reply(recp, sender, "Done!")
         return true
     else

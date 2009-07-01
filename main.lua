@@ -224,7 +224,7 @@ if alive == true then
     for _,file in pairs(modules) do
         file = tostring(file)
         if io.open("modules/"..file..".lua") then
-            require("modules."..file)
+            dofile("modules/."..file..".lua")
         else
             msg("ERROR", string.format("Could not load module %s", file))
         end

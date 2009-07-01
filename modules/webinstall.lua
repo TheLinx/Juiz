@@ -20,7 +20,7 @@ local function cmd_webinstall(recp, sender, file, host)
     fopn:write(fcon)
     fopn:close()
     msg("TRACE", string.format("Downloaded this data: %s", fcon))
-    require("modules."..fnam)
+    dofile("modules/"..fnam..".lua")
     reply(recp, sender, "Done!")
     return true
 end

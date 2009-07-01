@@ -1,18 +1,8 @@
 local tcp = require("socket").tcp()
-config = {
-            server = 'irc.freenode.net',
-            port = 6667,
-            nick = 'Juiz',
-            admins = {'TheLinx'},
-            channels = {'kiiwii'},
-            version = 'Juiz IRC Bot r5',
-            trigger = '.'
-}
 local alive = true
 local lastsend = 0
-local modules = {'webinstall', 'welcome', 'admin'}
 local sendqueue = {}
-hook,hooks,ccmd,ccmds = {},{},{},{}
+version,config,modules,hook,hooks,ccmd,ccmds = "Juiz IRC Bot",{},{},{},{},{},{}
 
 function msg(mtype, mtext)
     if mtype == "CHATLOG" or mtype == "INSTALL" then
@@ -106,7 +96,7 @@ function mainloop()
     return processdata(rdata)
 end
 local function queue()
-    if sendqueue[1] and os.time() - lastsend > (#sendqueue / 2) then
+    if sendqueue[1] and os.time() - lastsend > 0.5 then
         return send(table.remove(sendqueue,1))
     end
     return true
@@ -129,7 +119,7 @@ function processdata(pdata)
     elseif command:lower() == "privmsg" then
         if recp:lower() == config.nick:lower() and onick:lower() ~= config.nick:lower() then
             if param:match("[^%w]?VERSION[^%w]?") then
-                say(onick, config.version)
+                say(onick, version)
                 msg("NOTIFY", string.format("Version requested from %s", onick))
             elseif param:match("[^%w]?PING[^%w]?") then
                 qsend(string.format("PONG %s", ohost))
@@ -142,10 +132,10 @@ function processdata(pdata)
                     botcmd = param
                     msg("TRACE", string.format("Command %s triggered by %s", botcmd, onick))
                 end
-                if not ccmd.Call(botcmd, onick, onick, args or nil) then
-                    say(onick, "Sorry, I don't have the command \""..botcmd.."\".")
+                if not ccmd.Call(botcmd, onick, onick, args or nil, ohost) then
+                    say(onick, string.format("Sorry, I don't have the command \"%s\".", botcmd))
                 end
-                msg("CHATLOG", string.format("PM <%s>: %s", onick, param))
+                msg("CHATLOG", string.format("PM <%s>: %s", onick or "nil - this shouldn't happen", param))
             end
         else
             if param:sub(1,config.trigger:len()) == config.trigger or
@@ -162,7 +152,7 @@ function processdata(pdata)
                     botcmd = param
                     msg("TRACE", string.format("Command %s triggered by %s", botcmd, onick))
                 end
-                if not ccmd.Call(botcmd, recp, onick, args or nil) and
+                if not ccmd.Call(botcmd, recp, onick, args or nil, ohost) and
                 param:sub(1,string.format("%s: ",config.nick):len()):lower() == string.format("%s: ",config.nick):lower() then
                     reply(recp, onick, string.format("Sorry, I don't have the command \"%s\".", botcmd))
                 end
@@ -184,38 +174,67 @@ function processdata(pdata)
     end
     return true
 end
-function isauthed(nick)
-    nickidentified = nil
-    qsend(string.format("WHOIS %s", nick))
-    while nickidentified == nil do queue(); msg("TRACE", "Waiting for /WHOIS response..."); mainloop() end
-    if nickidentified == true then return true else return false end
-end
-function isowner(nick)
+function isowner(nick, host)
     local owner = false
     for _,v in pairs(config.admins) do
-        if nick:lower() == v:lower() then
-            if isauthed(v) then owner = true end
-        end
+        if nick:lower() == v[1]:lower() and host:lower() == v[2]:lower() then owner = true end
     end
     return owner
+end
+function explode(div,str)
+    if (div=='') then return false end
+        local pos,arr = 0,{}
+        -- for each divider found
+        for st,sp in function() return string.find(str,div,pos,true) end do
+        table.insert(arr,string.sub(str,pos,st-1)) -- Attach chars left of current divider
+        pos = sp + 1 -- Jump past current divider
+    end
+    table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
+    return arr
 end
 function safe_require(file) -- Thanks to deryni and hoelzro in #lua@freenode
     local ret, val = pcall(require, file)
     return ret and val or nil
 end
 
--- Let's load the modules
-for _,file in pairs(modules) do
-    file = tostring(file)
-    if io.open("modules/"..file..".lua") then
-        require("modules."..file)
-    else
-        msg("ERROR", string.format("Could not load module %s", file))
+-- Let's load the config
+local fopn = io.open("config.txt", "r")
+if not fopn then
+    local fopn = io.open("config.txt", "w")
+    fopn:write("SERVER\nPORT\nNICKNAME\nOWNER PASSWORD\nCHANNEL (SEPARATE MULTIPLE BY COMMA)\nTRIGGER\nMODULES (SEPARATE MULTIPLE BY COMMA)")
+    fopn:close()
+    msg("NOTIFY", "Please edit the configuration file created in the current directory.")
+    alive = false
+else
+    local tmp = {}
+    for v in fopn:lines() do
+        table.insert(tmp, v)
+    end
+    config.server = tmp[1]
+    config.port = tmp[2]
+    config.nick = tmp[3]
+    config.pass = tmp[4]
+    config.channels = explode(',', tmp[5])
+    config.trigger = tmp[6]
+    modules = explode(',', tmp[7])
+    config.admins = {}
+end
+-- Load the selected modules
+if alive == true then
+    for _,file in pairs(modules) do
+        file = tostring(file)
+        if io.open("modules/"..file..".lua") then
+            require("modules."..file)
+        else
+            msg("ERROR", string.format("Could not load module %s", file))
+        end
     end
 end
 -- All functions set, time to connect
-if not connect() then
-    alive = false
+if alive == true then
+    if not connect() then
+        alive = false
+    end
 end
 -- Now that we're alive and well, let's start receiving data
 while alive == true do

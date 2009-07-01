@@ -1,12 +1,12 @@
-local function cmd_quit(recp, sender)
-    if not isowner(sender) then
+local function cmd_quit(recp, sender, _, host)
+    if not isowner(sender, host) then
         reply(recp, sender, "You're not authorized to use that command.")
         return true
     end
     qsend("QUIT")
 end
-local function cmd_install(recp, sender, file)
-    if not isowner(sender) then
+local function cmd_install(recp, sender, file, host)
+    if not isowner(sender, host) then
         reply(recp, sender, "You're not authorized to use that command.")
         return true
     end
@@ -23,7 +23,17 @@ local function cmd_install(recp, sender, file)
         return true
     end
 end
+local function cmd_auth(recp, sender, password, host)
+    if password == config.pass then
+        table.insert(config.admins, {sender, host})
+        reply(recp, sender, "You have authed with me.")
+    else
+        reply(recp, sender, "Wrong password.")
+    end
+    return true
+end
 
 ccmd.Add("quit", cmd_quit)
 ccmd.Add("install", cmd_install)
+ccmd.Add("auth", cmd_auth)
 msg("INSTALL", "Loaded default admin functions (http://code.google.com/p/juiz/wiki/admin)")

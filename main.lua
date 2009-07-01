@@ -11,7 +11,7 @@ function msg(mtype, mtext)
     if mtype == "ERROR" or mtype == "NOTIFY" then
         print(mtype..": "..mtext)
     end
-    if mtype == "TRACE" then print(mtype..": "..mtext) end
+    --if mtype == "TRACE" then print(mtype..": "..mtext) end
 end
 local function send(stext)
     local sbytes, serror = tcp:send(stext)

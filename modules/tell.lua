@@ -1,4 +1,3 @@
-local telldb = {}
 local function cmd_tell(recp, sender, message)
     if message == '' or message == nil then
         reply(recp, sender, "You can't do that.")
@@ -12,16 +11,17 @@ local function cmd_tell(recp, sender, message)
     end
     msg("TRACE", string.format("%s left a message to %s: %s", sender, messageto, messagetext))
     reply(recp, sender, string.format("Okay, I'll tell %s that when he/she is back.", messageto))
-    table.insert(telldb, {messageto, messagetext, sender})
+    data.Add("telldb", {messageto, messagetext, sender})
     return true
 end
 local function usercheck(sender, recp, message)
-    for k,v in pairs(telldb) do
+    for _,v in pairs(data.Get("telldb")) do
         if v[1]:lower() == sender:lower() then
             reply(recp, sender, string.format("%s left this message to you: '%s'", v[3], v[2]))
-            table.remove(telldb, k)
+            data.Remove(v, false)
         end
     end
+    data.Save()
 end
 
 ccmd.Add("tell", cmd_tell)

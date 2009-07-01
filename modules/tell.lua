@@ -2,6 +2,10 @@ local telldb = {}
 local function cmd_tell(recp, sender, message)
     messageto = string.sub(message, 0, message:find(" ")-1)
     messagetext = string.sub(message, message:find(" ")+1)
+    if messageto:lower() == config.nick:lower() or sender:lower() == messageto:lower() then
+        reply(recp, sender, "I'm not that stupid")
+        return true
+    end
     msg("TRACE", string.format("%s left a message to %s: %s", sender, messageto, messagetext))
     reply(recp, sender, "Okay, I'll tell him that when I see him")
     table.insert(telldb, {messageto, messagetext, sender})

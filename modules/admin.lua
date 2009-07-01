@@ -3,6 +3,7 @@ local function cmd_quit(recp, sender, _, host)
         reply(recp, sender, "You're not authorized to use that command.")
         return true
     end
+    data.Save()
     qsend("QUIT")
 end
 local function cmd_install(recp, sender, file, host)

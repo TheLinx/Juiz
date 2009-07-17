@@ -37,27 +37,9 @@ end
 function hook.Add(trigger, func)
     table.insert(hooks, {trigger, func})
 end
-function ccmd.Add(trigger, func)
-    for k,v in pairs(ccmds) do
-        if v[1]:lower() == trigger:lower() then
-            table.remove(ccmds, k)
-        end
-    end
-    table.insert(ccmds, {trigger, func})
-end
 function hook.Call(trigger, ...)
     for _,v in pairs(hooks) do
         if v[1] == trigger then
-            local co = coroutine.create(function(a, b, c, d, e, f, g) v[2](a, b, c, d, e, f, g) end)
-            return coroutine.resume(co, ...)
-        end
-    end
-end
-function ccmd.Call(trigger, ...)
-    for _,v in pairs(ccmds) do
-        if v[1]:lower() == trigger:lower() then
-            --return v[2](...)
-            --return coroutine.resume(coroutine.create(function(...) v[2](...) end, ...))
             local co = coroutine.create(function(a, b, c, d, e, f, g) v[2](a, b, c, d, e, f, g) end)
             return coroutine.resume(co, ...)
         end
@@ -123,47 +105,14 @@ function processdata(pdata)
             if param:match("[^%w]?VERSION[^%w]?") then
                 say(onick, version)
                 msg("NOTIFY", string.format("Version requested from %s", onick))
+                return true
             elseif param:match("[^%w]?PING[^%w]?") then
                 qsend(string.format("PONG %s", ohost))
                 msg("NOTIFY", string.format("Ping requested from %s", onick))
-            else
-                if param:find(' ') then
-                    botcmd,args = param:match("^(%S+) (.*)")
-                    msg("TRACE", string.format("Command %s:%s triggered by %s", botcmd, args, onick))
-                else
-                    botcmd = param
-                    msg("TRACE", string.format("Command %s triggered by %s", botcmd, onick))
-                end
-                if not ccmd.Call(botcmd, onick, onick, args or nil, ohost) then
-                    say(onick, string.format("Sorry, I don't have the command \"%s\".", botcmd))
-                end
-                msg("CHATLOG", string.format("PM <%s>: %s", onick or "nil - this shouldn't happen", param))
+                return true
             end
-        else
-            if param:sub(1,config.trigger:len()) == config.trigger or
-               param:sub(1,string.format("%s: ",config.nick):len()):lower() == string.format("%s: ",config.nick):lower() then
-                if param:sub(1,config.trigger:len()) == config.trigger then
-                    param = param:sub(config.trigger:len()+1)
-                else
-                    param = param:sub(string.format("%s: ",config.nick):len()+1)
-                end
-                if param:find(' ') then
-                    botcmd,args = param:match("^(%S+) (.*)")
-                    msg("TRACE", string.format("Command %s:%s triggered by %s", botcmd, args, onick))
-                else
-                    botcmd = param
-                    msg("TRACE", string.format("Command %s triggered by %s", botcmd, onick))
-                end
-                if not ccmd.Call(botcmd, recp, onick, args or nil, ohost) and
-                param:sub(1,string.format("%s: ",config.nick):len()):lower() == string.format("%s: ",config.nick):lower() then
-                    reply(recp, onick, string.format("Sorry, I don't have the command \"%s\".", botcmd))
-                end
-            else
-                msg("TRACE", param:sub(1,string.format("%s: ",config.nick):len()):lower().." ~= "..string.format("%s: ",config.nick):lower())
-            end
-            msg("CHATLOG", string.format("%s <%s>: %s", recp, onick or "nil - this shouldn't happen", param))
         end
-        hook.Call("message", onick, recp, param)
+        hook.Call("message", onick, recp, param, ohost)
     elseif command:lower() == "join" then
         if onick:lower() == config.nick:lower() then
             msg("NOTIFY", string.format("Joined channel %s", param))
@@ -240,8 +189,6 @@ function data.Save()
     msg("NOTIFY", "Saved data.")
     return true
 end
-ccmd.Add("savedata", function() data.Save() end)
-ccmd.Add("store", function(_,_,m) data.Add("ccmd", m) end)
 
 -- Let's load the config
 local fopn = io.open("config.txt", "r")

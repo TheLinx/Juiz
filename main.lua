@@ -48,16 +48,18 @@ end
 function hook.Call(trigger, ...)
     for _,v in pairs(hooks) do
         if v[1] == trigger then
-            v[2](...)
+            local co = coroutine.create(function(a, b, c, d, e, f, g) v[2](a, b, c, d, e, f, g) end)
+            return coroutine.resume(co, ...)
         end
     end
 end
 function ccmd.Call(trigger, ...)
     for _,v in pairs(ccmds) do
         if v[1]:lower() == trigger:lower() then
-            return v[2](...)
-        else
-            msg("TRACE", string.format("Trigger %s does not match command %s", trigger, v[1]))
+            --return v[2](...)
+            --return coroutine.resume(coroutine.create(function(...) v[2](...) end, ...))
+            local co = coroutine.create(function(a, b, c, d, e, f, g) v[2](a, b, c, d, e, f, g) end)
+            return coroutine.resume(co, ...)
         end
     end
 end
@@ -80,7 +82,7 @@ local function connect()
     local chansuccess = 0
     for _,channel in pairs(config.channels) do
         qsend(string.format("JOIN #%s", channel))
-        qsend(string.format("PRIVMSG #%s :Hi everyone! I'm the new bot.", channel, #modules))
+        --qsend(string.format("PRIVMSG #%s :Hi everyone! I'm the new bot.", channel, #modules))
         chansuccess = chansuccess + 1
     end
     return true

@@ -5,6 +5,15 @@ local function cmd_quit(recp, sender, _, host)
     end
     data.Save()
     qsend("QUIT")
+    return true
+end
+local function cmd_exec(recp, sender, command, host)
+    if not isowner(sender, host) then
+        reply(recp, sender, "You're not authorized to use that command.")
+        return true
+    end
+    loadstring(command)()
+    return true
 end
 local function cmd_install(recp, sender, file, host)
     if not isowner(sender, host) then
@@ -35,6 +44,7 @@ local function cmd_auth(recp, sender, password, host)
 end
 
 ccmd.Add("quit", cmd_quit)
+ccmd.Add("exec", cmd_exec)
 ccmd.Add("install", cmd_install)
 ccmd.Add("auth", cmd_auth)
 msg("INSTALL", "Loaded default admin functions (http://code.google.com/p/juiz/wiki/admin)")

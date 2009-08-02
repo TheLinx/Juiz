@@ -1,17 +1,26 @@
-local tcp = require("socket").tcp()
+require("socket")
+http = require("socket.http")
+mime = require("mime")
+local tcp = socket.tcp()
 local alive = true
 local lastsend = 0
 local sendqueue = {}
-version,config,modules,hook,hooks,ccmd,ccmds,data,datatable = "Juiz IRC Bot",{},{},{},{},{},{},{},{}
+version,config,module,loaded,modules,hook,hooks = "Juiz IRC Bot",{},{},{},{},{},{}
 
-function msg(mtype, mtext)
-    if mtype == "CHATLOG" or mtype == "INSTALL" then
-        print(mtext)
+if arg[1] == "--debug" then
+    DEBUG = true
+end
+
+function msg(mtype, mtext, ...)
+    if mtype == "CHATLOG" then
+        print(string.format(mtext, ...))
+    elseif mtype == "INSTALL" then
+        print(string.format("Loaded %s", string.format(mtext, ...)))
+    elseif mtype == "ERROR" or mtype == "NOTIFY" then
+        print(string.format("%s: %s", mtype, string.format(mtext, ...)))
+    elseif DEBUG and mtype == "TRACE" then
+        print(string.format("%s: %s", mtype, string.format(mtext, ...)))
     end
-    if mtype == "ERROR" or mtype == "NOTIFY" then
-        print(mtype..": "..mtext)
-    end
-    if mtype == "TRACE" then print(mtype..": "..mtext) end
 end
 local function send(stext)
     local sbytes, serror = tcp:send(stext)
@@ -24,15 +33,8 @@ end
 function qsend(stext)
     table.insert(sendqueue, stext.."\r\n")
 end
-function say(srecp, stext)
-    qsend(string.format("PRIVMSG %s :%s", srecp, stext))
-end
-function reply(rrecp, rsender, rtext)
-    if rrecp == rsender then
-        qsend(string.format("PRIVMSG %s :%s", rrecp, rtext))
-    else
-        qsend(string.format("PRIVMSG %s :%s: %s", rrecp, rsender, rtext))
-    end
+function say(srecp, stext, ...)
+    qsend(string.format("PRIVMSG %s :%s", srecp, string.format(stext, ...)))
 end
 function hook.Add(trigger, func)
     table.insert(hooks, {trigger, func})
@@ -53,26 +55,23 @@ local function connect()
     if not cstatus then
         -- Something went wrong!
         msg("ERROR", string.format("Connection to %s:%d failed: %s", config.server, config.port, cerror))
+        error()
         return false
     end
     msg("NOTIFY", "Connected.")
     local sstatus, serror = send(string.format("NICK %s\r\nUSER %s %s %s :Tag\r\n", config.nick, config.nick, config.nick, config.server))
     if not sstatus then
         msg("ERROR", string.format("Sending login failed: %s", serror))
+        error()
     end
     msg("NOTIFY", "Sent login.")
-    local chansuccess = 0
-    for _,channel in pairs(config.channels) do
-        qsend(string.format("JOIN #%s", channel))
-        --qsend(string.format("PRIVMSG #%s :Hi everyone! I'm the new bot.", channel, #modules))
-        chansuccess = chansuccess + 1
-    end
     return true
 end
 function mainloop()
     local rdata, rerror = tcp:receive("*l")
     if not rdata and rerror and #rerror > 0 and rerror ~= "timeout" then
         msg("ERROR", string.format("Lost connection to %s:%d: %s", config.server, config.port, rerror))
+        error()
         return false
     elseif not rdata then
         return true
@@ -80,7 +79,7 @@ function mainloop()
     return processdata(rdata)
 end
 local function queue()
-    if sendqueue[1] and os.time() - lastsend > 0.2 then
+    if sendqueue[1] and os.time() - lastsend > 0.14 then
         return send(table.remove(sendqueue,1))
     end
     return true
@@ -95,7 +94,7 @@ function processdata(pdata)
         msg("TRACE", "Unparsed: " .. pdata)
         return true
     end
-    msg("TRACE", string.format("origin: %s, command: %s, recp: %s, param: %s", origin or "nil", command or "nil", recp or "nil", param or "nil"))
+    msg("RAW", "origin: %s, command: %s, recp: %s, param: %s", origin or "nil", command or "nil", recp or "nil", param or "nil")
     if origin ~= nil then onick,ohost = origin:match("^(%S+)!(%S+)") end
     if command:lower() == "ping" then
         qsend(string.format("PONG %s", param))
@@ -119,18 +118,12 @@ function processdata(pdata)
         end
         hook.Call("join", onick, param, ohost)
     elseif command:lower() == "part" then
+        if onick:lower() == config.nick:lower() then
+            msg("NOTIFY", string.format("Left channel %s", param))
+        end
         hook.Call("part", onick, param, ohost)
-    elseif string.find(param, "identified to services") then nickidentified = true
-    elseif string.find(param, "End of /WHOIS") then nickidentified = false
     end
     return true
-end
-function isowner(nick, host)
-    local owner = false
-    for _,v in pairs(config.admins) do
-        if nick:lower() == v[1]:lower() and host:lower() == v[2]:lower() then owner = true end
-    end
-    return owner
 end
 function explode(div,str)
     if (div=='') then return false end
@@ -143,58 +136,59 @@ function explode(div,str)
     table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
     return arr
 end
-function safe_require(file) -- Thanks to deryni and hoelzro in #lua@freenode
-    local ret, val = pcall(require, file)
-    return ret and val or nil
+function module.Register(safename, humanname, version, info)
+    if info == nil then
+        msg("INSTALL", "%s r%d", humanname, version)
+    else
+        msg("INSTALL", "%s r%d (%s)", humanname, version, info)
+    end
+    table.insert(loaded, {safename,version})
 end
-function data.Add(cat, adata, save)
-    table.insert(datatable, {cat, adata})
-    if save ~= false then data.Save() end
-end
-function data.Get(cat)
-    local cat,ret = cat or "all",{}
-    for k,v in pairs(datatable) do
-        if v[1] == cat or cat == "all" then
-            table.insert(ret, v[2])
+function module.DepCheck(dmodules,dversions)
+    for k,dmodule in pairs(dmodules) do
+        dversion = dversions[k]
+        msg("TRACE", "Checking if module %s r%d has been loaded", dmodule, dversion)
+        local mloaded = false
+        for _,v in pairs(loaded) do
+            if v[1] == dmodule then
+                if v[2] < dversion then
+                    mloaded = {"old",v[2]}
+                else
+                    mloaded = true
+                end
+            end
         end
+        if mloaded == true then
+            msg("TRACE", "Module %s r%d has been loaded", dmodule, dversion)
+            return true
+        else
+            msg("TRACE", "Module %s r%d has not been loaded", dmodule, dversion)
+            if type(mloaded) == "table" then
+                if mloaded[1] == "old" then
+                    msg("ERROR", "Module %s is outdated (r%d is installed, r%d is required)", dmodule, mloaded[2], dversion)
+                end
+            else
+                msg("ERROR", "Module %s is not available", dmodule)
+            end
+            error()
+        end
+    end
+end
+function loadmodule(filename)
+    filename = string.format("modules/%s.lua", filename:gsub(".lua", ""))
+    msg("TRACE", "Loading module %s", filename)
+    local ret,val = pcall(dofile, filename)
+    if not ret then
+        msg("ERROR", "Could not load module '%s', error: %s", filename:gsub("modules/", ""), val)
     end
     return ret
-end
-function data.Remove(rdata, save)
-    for k,v in pairs(datatable) do
-        if v[2] == rdata then
-            table.remove(datatable, k)
-        end
-    end
-    if save ~= false then data.Save() end
-end
-function data.Save()
-    local lastcat,fcon = '','---JUIZ IRC BOT SAVED DATA---'
-    local tbl = table.sort(datatable, function(a,b) return a[1]<b[1] end)
-    for _,v in pairs(datatable) do
-        if lastcat ~= v[1] then
-            fcon = string.format("%s\n[%s]", fcon, v[1] or 'nil')
-            lastcat = v[1]
-        end
-        if type(v[2]) == "table" then
-            fcon = string.format("%s\n%s", fcon, table.concat(v[2], "|"))
-        else
-            fcon = string.format("%s\n%s", fcon, v[2])
-        end
-    end
-    msg("TRACE", string.format("Generated this data: %s", fcon))
-    local fopn = io.open("saved.txt", "w")
-    fopn:write(fcon)
-    fopn:close()
-    msg("NOTIFY", "Saved data.")
-    return true
 end
 
 -- Let's load the config
 local fopn = io.open("config.txt", "r")
 if not fopn then
     local fopn = io.open("config.txt", "w")
-    fopn:write("SERVER\nPORT\nNICKNAME\nOWNER PASSWORD\nCHANNEL (SEPARATE MULTIPLE BY COMMA)\nTRIGGER\nMODULES (SEPARATE MULTIPLE BY COMMA)")
+    fopn:write("SERVER\nPORT\nNICKNAME\nOWNER PASSWORD\nTRIGGER")
     fopn:close()
     msg("NOTIFY", "Please edit the configuration file created in the current directory.")
     alive = false
@@ -207,40 +201,15 @@ else
     config.port = tmp[2]
     config.nick = tmp[3]
     config.pass = tmp[4]
-    config.channels = explode(',', tmp[5])
-    config.trigger = tmp[6]
-    modules = explode(',', tmp[7])
+    config.trigger = tmp[5]
     config.admins = {}
-end
--- Load the saved data
-local fopn = io.open("saved.txt", "r")
-if fopn then
-    local i,cat = 1,'nil'
-    for line in fopn:lines() do
-        msg("TRACE", string.format("read saved line %s", line))
-        if i == 1 and line == '---JUIZ IRC BOT SAVED DATA---' then
-            msg("NOTIFY", "Found saved data, loading from file...")
-        elseif string.sub(line, 1, 1) == "[" and string.sub(line, line:len(), line:len()) == "]" then
-            msg("TRACE", string.format("category changed to %s", string.sub(line, 2, line:len()-1) or ''))
-            cat = string.sub(line, 2, line:len()-1)
-        else
-            if string.find(line, "|") then
-                line = explode("|", line)
-            end
-            data.Add(cat, line, false)
-        end
-        i = i + 1
-    end
+    modules = {"util","data","ccmd","admin","help"}
 end
 -- Load the selected modules
 if alive == true then
     for _,file in pairs(modules) do
         file = tostring(file)
-        if io.open("modules/"..file..".lua") then
-            dofile("modules/"..file..".lua")
-        else
-            msg("ERROR", string.format("Could not load module %s", file))
-        end
+        loadmodule(file)
     end
 end
 -- All functions set, time to connect
@@ -249,6 +218,7 @@ if alive == true then
         alive = false
     end
 end
+hook.Call("connected")
 -- Now that we're alive and well, let's start receiving data
 while alive == true do
     if not mainloop() then

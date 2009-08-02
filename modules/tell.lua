@@ -1,4 +1,4 @@
-local function cmd_tell(recp, sender, message)
+ccmd.Add("tell", function (recp, sender, message)
     if message == '' or message == nil then
         reply(recp, sender, "You can't do that.")
         return true
@@ -13,7 +13,7 @@ local function cmd_tell(recp, sender, message)
     reply(recp, sender, string.format("Okay, I'll tell %s that when he/she is back.", messageto))
     data.Add("telldb", {messageto, messagetext, sender})
     return true
-end
+end)
 local function usercheck(sender, recp, message)
     for _,v in pairs(data.Get("telldb")) do
         if v[1]:lower() == sender:lower() then
@@ -24,7 +24,6 @@ local function usercheck(sender, recp, message)
     data.Save()
 end
 
-ccmd.Add("tell", cmd_tell)
 hook.Add("message", usercheck)
 hook.Add("join", usercheck)
-msg("INSTALL", "Loaded tell module (http://code.google.com/p/juiz/wiki/tell)")
+module.Register("tell", "Tell Command", 1, "http://code.google.com/p/juiz/wiki/tell")

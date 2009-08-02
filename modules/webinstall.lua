@@ -1,5 +1,6 @@
-local http = safe_require("socket.http")
-local function cmd_webinstall(recp, sender, file, host)
+module.DepCheck({"util","ccmd"}, {1,1})
+
+ccmd.Add("webinstall", function (recp, sender, file, host)
     if not isowner(sender, host) then
         reply(recp, sender, "You're not authorized to use that command.")
         return true
@@ -19,11 +20,12 @@ local function cmd_webinstall(recp, sender, file, host)
     local fopn = io.open("modules/"..fnam..".lua", "w+")
     fopn:write(fcon)
     fopn:close()
-    msg("TRACE", string.format("Downloaded this data: %s", fcon))
-    dofile("modules/"..fnam..".lua")
-    reply(recp, sender, "Done!")
+    if loadmodule(fnam) then
+        reply(recp, sender, "Done!")
+    else
+        reply(recp, sender, "Sorry, the module could not be loaded. Check the console output for more info.")
+    end
     return true
-end
+end)
 
-ccmd.Add("webinstall", cmd_webinstall)
-msg("INSTALL", "Loaded Web Install (http://code.google.com/p/juiz/wiki/webinstall)")
+module.Register("webinstall", "HTTP Module Installation", 1, "http://code.google.com/p/juiz/wiki/webinstall")

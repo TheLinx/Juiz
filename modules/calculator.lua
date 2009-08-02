@@ -24,6 +24,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ]]--
+module.DepCheck({"util","ccmd"},{1,1})
+
 rex = safe_require('rex_pcre')
 
 -- We make an alias of all of the normal functions
@@ -32,7 +34,6 @@ for k,v in pairs(math) do
 end
 
 -- We reimplement log because we want it to behave slightly different
-
 function log(x,base)
    if base == 10 then
       return math.log10(x)
@@ -42,27 +43,24 @@ function log(x,base)
 end
 
 -- This is the regular expressions that validates the input. Protect your eyes.
-
 regex = '^(?:(?:ceil|abs|floor|mod|exp|log|pow|sqrt|acos|asin|atan|cos|sin|tan|deg|rad|random)\\(|pi|\\(|\\)|-|\\+|\\*|/|\\d|\\.|\\^|\\x2C| )+$'
 
 -- Finally, we can define the function that we call in the chat
-
-local function cmd_calc(recp, sender, equ)
+ccmd.Add("calc", function (recp, sender, equ)
     result = 'ERROR'
     match = rex.match(equ, regex)
     if match == equ then
        -- We use loadstring to compile the function
        if pcall(function () f = assert(loadstring('result = '..equ)) end) then
          f()
-         say(recp, sender..': '..equ..' = '..result)
+         reply(recp, sender, string.format("%s = %s", equ, result))
        else
-         say(recp, sender..': Invald input')
+         reply(recp, sender, 'Invald input')
        end
     else
-       say(recp, sender..': Invalid input')
+       reply(recp, sender, 'Invalid input')
     end
-   
     return true
- end
+end)
 
-ccmd.Add("c", cmd_calc)
+module.Register("calculator", "Calculator", 1, "http://code.google.com/p/juiz/wiki/calculator")

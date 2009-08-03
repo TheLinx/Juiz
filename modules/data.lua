@@ -1,42 +1,54 @@
-module.DepCheck({"util"},{1})
+--[[
+---- Data saving ----
+Made by: TheLinx (http://www.unreliablepollution.net/)
+Depends on:
+  * Utility functions
+License: MIT
+--]]
+jmodule.DepCheck({"util"},{1})
 data,datatable = {},{}
 
-function data.Add(cat, adata, save)
-    table.insert(datatable, {cat, adata})
-    if save ~= false then data.Save() end
+function data.Set(cat, adata)
+    msg("TRACE", "datatable[%s] = %s", cat, tostring(adata))
+    datatable[cat] = adata
+    return true
 end
 function data.Get(cat)
-    local cat,ret = cat or "all",{}
-    for k,v in pairs(datatable) do
-        if v[1] == cat or cat == "all" then
-            table.insert(ret, v[2])
-        end
-    end
-    return ret
+    return datatable[cat]
 end
-function data.Remove(rdata, save)
-    for k,v in pairs(datatable) do
-        if v[2] == rdata then
-            table.remove(datatable, k)
-        end
+function data.Add(cat, adata, save)
+    if type(adata) == "string" then adata = {adata} end
+    local existingdata = data.Get(cat)
+    if existingdata ~= nil then
+        msg("TRACE", "Data for category %s already there!", cat)
+        for k,v in pairs(existingdata) do print(k,v) adata[#adata + 1] = v end
     end
+    print(unpack(adata))
+    data.Set(cat, adata)
+    if save ~= false then data.Save() end
+end
+function data.Remove(cat, save)
+    data.Set(cat, nil)
     if save ~= false then data.Save() end
 end
 function data.Save()
+    msg("TRACE", "Saving data...")
     local lastcat,fcon = '','---JUIZ IRC BOT SAVED DATA---'
-    local tbl = table.sort(datatable, function(a,b) return a[1]<b[1] end)
-    for _,v in pairs(datatable) do
-        if lastcat ~= v[1] then
-            fcon = string.format("%s\n[%s]", fcon, v[1] or 'nil')
-            lastcat = v[1]
+    local tbl = datatable
+    --local tbl = table.sort(datatable, function(a,b) )
+    for k,v in pairs(datatable) do
+        if lastcat ~= k then
+            msg("TRACE", "Changing category to %s", k)
+            fcon = string.format("%s\n[%s]", fcon, k)
+            lastcat = k
         end
-        if type(v[2]) == "table" then
-            fcon = string.format("%s\n%s", fcon, table.concat(v[2], "|"))
+        if type(v) == "table" then
+            fcon = string.format("%s\n%s", fcon, table.concat(v, "|"))
         else
-            fcon = string.format("%s\n%s", fcon, v[2])
+            fcon = string.format("%s\n%s", fcon, v)
         end
     end
-    msg("TRACE", string.format("Generated this data: %s", fcon))
+    msg("TRACE", "Generated this data: %s", fcon)
     local fopn = io.open("saved.txt", "w")
     fopn:write(fcon)
     fopn:close()
@@ -44,25 +56,25 @@ function data.Save()
     return true
 end
 
--- Load the saved data
+-- Load the saved data on load
 local fopn = io.open("saved.txt", "r")
 if fopn then
     local i,cat = 1,'nil'
     for line in fopn:lines() do
-        msg("TRACE", string.format("read saved line %s", line))
+        msg("TRACE", "read saved line %s", line)
         if i == 1 and line == '---JUIZ IRC BOT SAVED DATA---' then
             -- found saved data
         elseif string.sub(line, 1, 1) == "[" and string.sub(line, line:len(), line:len()) == "]" then
-            msg("TRACE", string.format("category changed to %s", string.sub(line, 2, line:len()-1) or ''))
+            msg("TRACE", "category changed to %s", string.sub(line, 2, line:len()-1))
             cat = string.sub(line, 2, line:len()-1)
         else
             if string.find(line, "|") then
                 line = explode("|", line)
             end
-            data.Add(cat, line, false)
+            data.Set(cat, line, false)
         end
         i = i + 1
     end
 end
 
-module.Register("data", "Data Saving", 1, "http://code.google.com/p/juiz/wiki/data")
+jmodule.Register("data", "Data Saving", 1, "http://code.google.com/p/juiz/wiki/data")

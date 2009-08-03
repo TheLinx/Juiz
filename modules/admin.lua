@@ -1,6 +1,16 @@
-module.DepCheck({"ccmd","util","data"},{1,1,1})
+--[[
+---- Default Admin Functions for Juiz ----
+Made by: TheLinx (http://www.unreliablepollution.net/)
+Depends on:
+  * Chat command functionality (any version)
+  * Utility functions (any version)
+  * Data saving (any version)
+License: MIT
+--]]
+jmodule.DepCheck({"ccmd","util","data"},{1,1,1})
 
 ccmd.Add("quit", {function (recp, sender, message, host)
+-- quit [message] - shuts it down. (owner only)
     if not isowner(sender, host) then
         reply(recp, sender, "You're not authorized to use that command.")
         return true
@@ -11,6 +21,7 @@ ccmd.Add("quit", {function (recp, sender, message, host)
     return true
 end, "[message]", "shuts it down. (owner only)"})
 ccmd.Add("exec", {function (recp, sender, command, host)
+-- exec <code> - executes raw Lua code. (owner only)
     if not isowner(sender, host) then
         reply(recp, sender, "You're not authorized to use that command.")
         return true
@@ -23,6 +34,7 @@ ccmd.Add("exec", {function (recp, sender, command, host)
     return true
 end, "<code>", "executes raw Lua code. (owner only)"})
 ccmd.Add("install", {function (recp, sender, file, host)
+-- install <filename> - loads a Lua script from the modules directory. (owner only)
     if not isowner(sender, host) then
         reply(recp, sender, "You're not authorized to use that command.")
         return true
@@ -38,6 +50,7 @@ ccmd.Add("install", {function (recp, sender, file, host)
     end
 end, "<filename>", "loads a Lua script from the modules directory. (owner only)"})
 ccmd.Add("auth", {function (recp, sender, password, host)
+-- auth <password> - authenticates with Juiz so you can use owner-only functions.
     if password == config.pass then
         table.insert(config.admins, {sender, host})
         reply(recp, sender, "You have authed with me.")
@@ -47,13 +60,15 @@ ccmd.Add("auth", {function (recp, sender, password, host)
     return true
 end, "<password>", "authenticates with Juiz so you can use owner-only functions."})
 ccmd.Add("join", {function (recp, sender, channel, host)
+-- join <channel name> - join the specified channel. (owner only)
     if not isowner(sender, host) then
         reply(recp, sender, "You're not authorized to use that command.")
         return true
     end
     join(channel)
-end, "<channel name>", "joins the specified channel. (owner only)"})
+end, "<channel name>", "join the specified channel. (owner only)"})
 ccmd.Add("leave", {function (recp, sender, channel, host)
+-- leave [channel name] - leave the specified channel. if no channel is specified, it leaves the channel the command was executed in. (owner only)
     if not isowner(sender, host) then
         reply(recp, sender, "You're not authorized to use that command.")
         return true
@@ -68,4 +83,4 @@ ccmd.Add("leave", {function (recp, sender, channel, host)
     part(channel)
 end, "[channel name]", "leave the specified channel. if no channel is specified, it leaves the channel the command was executed in. (owner only)"})
 
-module.Register("admin", "Default Admin Functions", 1, "http://code.google.com/p/juiz/wiki/admin")
+jmodule.Register("admin", "Default Admin Functions", 1, "http://code.google.com/p/juiz/wiki/admin")

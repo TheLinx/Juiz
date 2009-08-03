@@ -1,6 +1,15 @@
-module.DepCheck({"util","ccmd"},{1,1})
+--[[
+---- Help command ----
+Made by: TheLinx (http://www.unreliablepollution.net/)
+Depends on:
+  * Utility functions
+  * Chat command functionality
+License: MIT
+--]]
+jmodule.DepCheck({"util","ccmd"},{1,1})
 
 function cmd_help(recp, sender, command)
+-- help/commands <command> - sends a list of available commands or usage info about a command.
     if recp:lower() ~= sender:lower() then
         reply(recp, sender, "Sorry, this command can only be used in a private chat.")
         return true
@@ -43,4 +52,4 @@ end
 
 ccmd.Add("help", cmd_help)
 ccmd.Add("commands", cmd_help)
-module.Register("help", "Help", 1, "http://code.google.com/p/juiz/wiki/help")
+jmodule.Register("help", "Help", 1, "http://code.google.com/p/juiz/wiki/help")

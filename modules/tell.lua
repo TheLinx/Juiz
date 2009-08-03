@@ -1,4 +1,16 @@
-ccmd.Add("tell", function (recp, sender, message)
+--[[
+---- Tell command ----
+Made by: TheLinx (http://www.unreliablepollution.net/)
+Depends on:
+  * Utility functions
+  * Chat command functionality
+  * Data saving
+License: MIT
+--]]
+jmodule.DepCheck({"util","ccmd","data"},{1,1,1})
+
+ccmd.Add("tell", {function (recp, sender, message)
+-- tell <user> <message> - takes a message for another user, then tells them when they come back.
     if message == '' or message == nil then
         reply(recp, sender, "You can't do that.")
         return true
@@ -9,21 +21,27 @@ ccmd.Add("tell", function (recp, sender, message)
         reply(recp, sender, "You can't do that.")
         return true
     end
-    msg("TRACE", string.format("%s left a message to %s: %s", sender, messageto, messagetext))
-    reply(recp, sender, string.format("Okay, I'll tell %s that when he/she is back.", messageto))
-    data.Add("telldb", {messageto, messagetext, sender})
+    msg("TRACE", "%s left a message to %s: %s", sender, messageto, messagetext)
+    reply(recp, sender, "Okay, I'll tell %s that when he/she is back.", messageto)
+    data.Add("telldb-"..messageto, string.format("%s %s", sender, messagetext))
     return true
-end)
-local function usercheck(sender, recp, message)
-    for _,v in pairs(data.Get("telldb")) do
-        if v[1]:lower() == sender:lower() then
-            reply(recp, sender, string.format("%s left this message to you: '%s'", v[3], v[2]))
-            data.Remove(v, false)
+end, "<user> <message>", "takes a message for another user, then tells them when they come back."})
+function usercheck(sender, recp)
+    msg("TRACE", "Checking if %s has any messages...", sender)
+    local telldb = data.Get("telldb-"..sender)
+    if telldb == nil then return true
+    elseif type(telldb) == "table" then
+        for _,v in pairs(telldb) do
+            local messagefrom,messagetext = v:match("^(%S+) (.*)")
+            reply(recp, sender, "%s left this message to you: '%s'", messagefrom, tostring(messagetext))
         end
+    elseif type(telldb) == "string" then
+        local messagefrom,messagetext = telldb:match("^(%S+) (.*)")
+        reply(recp, sender, "%s left this message to you: '%s'", messagefrom, tostring(messagetext))
     end
-    data.Save()
+    data.Remove("telldb-"..sender)
 end
 
 hook.Add("message", usercheck)
 hook.Add("join", usercheck)
-module.Register("tell", "Tell Command", 1, "http://code.google.com/p/juiz/wiki/tell")
+jmodule.Register("tell", "Tell Command", 1, "http://code.google.com/p/juiz/wiki/tell")

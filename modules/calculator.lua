@@ -1,4 +1,11 @@
 --[[
+---- Calculator ----
+Made by: henrikb4 (henrikb4@gmail.com)
+Depends on:
+  * Utility functions (any version)
+  * Chat command functionality (any version)
+  * (External) LRexLib
+License:
 Copyright (c) 2009, Henrik "henrikb4" Enggaard Hansen (henrikb4@gmail.com)
 All rights reserved.
 
@@ -23,8 +30,8 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-]]--
-module.DepCheck({"util","ccmd"},{1,1})
+--]]
+jmodule.DepCheck({"util","ccmd"},{1,1})
 
 rex = safe_require('rex_pcre')
 
@@ -46,14 +53,15 @@ end
 regex = '^(?:(?:ceil|abs|floor|mod|exp|log|pow|sqrt|acos|asin|atan|cos|sin|tan|deg|rad|random)\\(|pi|\\(|\\)|-|\\+|\\*|/|\\d|\\.|\\^|\\x2C| )+$'
 
 -- Finally, we can define the function that we call in the chat
-ccmd.Add("calc", function (recp, sender, equ)
+ccmd.Add("calc", {function (recp, sender, equ)
+-- calc <expression> - Calculates expression and replies with the result.
     result = 'ERROR'
     match = rex.match(equ, regex)
     if match == equ then
        -- We use loadstring to compile the function
        if pcall(function () f = assert(loadstring('result = '..equ)) end) then
          f()
-         reply(recp, sender, string.format("%s = %s", equ, result))
+         reply(recp, sender, "%s = %s", equ, result)
        else
          reply(recp, sender, 'Invald input')
        end
@@ -61,6 +69,6 @@ ccmd.Add("calc", function (recp, sender, equ)
        reply(recp, sender, 'Invalid input')
     end
     return true
-end)
+end, "<expression>", "Calculates expression and replies with the result."})
 
-module.Register("calculator", "Calculator", 1, "http://code.google.com/p/juiz/wiki/calculator")
+jmodule.Register("calculator", "Calculator", 1, "http://code.google.com/p/juiz/wiki/calculator")

@@ -5,4 +5,4 @@ local function welcome(recp, channel)
 end
 hook.Add("join", welcome)
 
-module.Loaded("welcomer", "Welcomer", 1, "http://code.google.com/p/juiz/wiki/welcomer")
+jmodule.Loaded("welcomer", "Welcomer", 1, "http://code.google.com/p/juiz/wiki/welcomer")

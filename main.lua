@@ -1,14 +1,15 @@
 require("socket")
-http = require("socket.http")
-mime = require("mime")
-local tcp = socket.tcp()
-local alive = true
-local lastsend = 0
-local sendqueue = {}
-version,config,module,loaded,modules,hook,hooks = "Juiz IRC Bot",{},{},{},{},{},{}
+local tcp,alive,lastsend,sendqueue,configfile = socket.tcp(),true,0,{},"config.txt"
+version,config,jmodule,loaded,hook,hooks = "Juiz IRC Bot",{},{},{},{},{}
 
-if arg[1] == "--debug" then
-    DEBUG = true
+for _,v in pairs(arg) do
+    if v == "--debug" then
+        DEBUG = true
+    end
+    if v == "--dont-connect" then
+        DONTCONNECT = true
+    end
+    
 end
 
 function msg(mtype, mtext, ...)
@@ -22,6 +23,7 @@ function msg(mtype, mtext, ...)
         print(string.format("%s: %s", mtype, string.format(mtext, ...)))
     end
 end
+
 local function send(stext)
     local sbytes, serror = tcp:send(stext)
     if sbytes ~= stext:len() then
@@ -37,12 +39,13 @@ function say(srecp, stext, ...)
     qsend(string.format("PRIVMSG %s :%s", srecp, string.format(stext, ...)))
 end
 function hook.Add(trigger, func)
+    msg("TRACE", "Hooking %s to trigger %s", tostring(func), trigger)
     table.insert(hooks, {trigger, func})
 end
 function hook.Call(trigger, ...)
     for _,v in pairs(hooks) do
         if v[1] == trigger then
-            local co = coroutine.create(function(a, b, c, d, e, f, g) v[2](a, b, c, d, e, f, g) end)
+            local co = coroutine.create(function(a, b, c, d, e, f, g) return pcall(v[2], a or nil, b or nil, c or nil, d or nil, e or nil, f or nil, g or nil) end)
             return coroutine.resume(co, ...)
         end
     end
@@ -136,7 +139,7 @@ function explode(div,str)
     table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
     return arr
 end
-function module.Register(safename, humanname, version, info)
+function jmodule.Register(safename, humanname, version, info)
     if info == nil then
         msg("INSTALL", "%s r%d", humanname, version)
     else
@@ -144,11 +147,10 @@ function module.Register(safename, humanname, version, info)
     end
     table.insert(loaded, {safename,version})
 end
-function module.DepCheck(dmodules,dversions)
+function jmodule.DepCheck(dmodules,dversions)
     for k,dmodule in pairs(dmodules) do
-        dversion = dversions[k]
-        msg("TRACE", "Checking if module %s r%d has been loaded", dmodule, dversion)
-        local mloaded = false
+        msg("TRACE", "Checking if module %s has been loaded", dmodule)
+        local dversion,mloaded = dversions[k],false
         for _,v in pairs(loaded) do
             if v[1] == dmodule then
                 if v[2] < dversion then
@@ -160,7 +162,6 @@ function module.DepCheck(dmodules,dversions)
         end
         if mloaded == true then
             msg("TRACE", "Module %s r%d has been loaded", dmodule, dversion)
-            return true
         else
             msg("TRACE", "Module %s r%d has not been loaded", dmodule, dversion)
             if type(mloaded) == "table" then
@@ -170,16 +171,18 @@ function module.DepCheck(dmodules,dversions)
             else
                 msg("ERROR", "Module %s is not available", dmodule)
             end
-            error()
+            error("Dependencies not satisfied.")
+            return false
         end
     end
+    return true
 end
 function loadmodule(filename)
     filename = string.format("modules/%s.lua", filename:gsub(".lua", ""))
     msg("TRACE", "Loading module %s", filename)
-    local ret,val = pcall(dofile, filename)
+    local ret,err = pcall(dofile, filename)
     if not ret then
-        msg("ERROR", "Could not load module '%s', error: %s", filename:gsub("modules/", ""), val)
+        msg("ERROR", "Could not load module '%s', error: %s", filename:gsub("modules/", ""), err or "nil")
     end
     return ret
 end
@@ -203,15 +206,18 @@ else
     config.pass = tmp[4]
     config.trigger = tmp[5]
     config.admins = {}
-    modules = {"util","data","ccmd","admin","help"}
+    config.modules = {"util","data","ccmd","admin","help","lastfm"}
 end
 -- Load the selected modules
 if alive == true then
-    for _,file in pairs(modules) do
+    for _,file in pairs(config.modules) do
         file = tostring(file)
         loadmodule(file)
     end
 end
+
+if DONTCONNECT then alive = false end
+
 -- All functions set, time to connect
 if alive == true then
     if not connect() then
@@ -222,11 +228,10 @@ hook.Call("connected")
 -- Now that we're alive and well, let's start receiving data
 while alive == true do
     if not mainloop() then
-        print("Shutting down...")
         alive = false
     end
     if not queue() then
-        print("Shutting down...")
         alive = false
     end
 end
+print("Shutting down...")

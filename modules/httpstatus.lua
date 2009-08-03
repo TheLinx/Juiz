@@ -1,6 +1,15 @@
-module.DepCheck({"util","ccmd"},{1,1})
+--[[
+---- HTTP status checker ----
+Made by: TheLinx (http://www.unreliablepollution.net/)
+Depends on:
+  * Utility functions
+  * Chat command functionality
+License: MIT
+--]]
+jmodule.DepCheck({"util","ccmd"},{1,1})
 
 ccmd.Add("httpstatus", {function (recp, sender, rurl)
+-- httpstatus <url> - checks HTTP status of target url.
     if not rurl:find("http://") then
         rurl = "http://"..rurl
     end
@@ -13,4 +22,4 @@ ccmd.Add("httpstatus", {function (recp, sender, rurl)
     return true
 end, "<url>", "checks HTTP status of target url."})
 
-module.Register("httpstatus", "HTTP Status Checker", 1, "http://code.google.com/p/juiz/wiki/httpstatus")
+jmodule.Register("httpstatus", "HTTP Status Checker", 1, "http://code.google.com/p/juiz/wiki/httpstatus")

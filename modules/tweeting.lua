@@ -1,3 +1,9 @@
+--[[
+---- Tweeting functionality ----
+Made by: TheLinx (http://www.unreliablepollution.net/)
+License: MIT
+--]]
+
 local twbaserequest = [[POST /statuses/update.xml HTTP/1.0
 Host: twitter.com
 Authorization: Basic %s
@@ -8,6 +14,7 @@ status=%s
 ]]
 
 function tweet(twmessage, twusername, twpassword)
+-- tweet(string _message_, string _twusername_ (or twkey)[, string _twpassword_])
     local twkey
     if not twpassword then
         twkey = twusername
@@ -20,8 +27,8 @@ function tweet(twmessage, twusername, twpassword)
     twconn:settimeout(60)
 	twconn:send(twrequest)
 	twconn:close()
-    msg("TRACE", string.format("tweeted '%s' as user '%s'", twmessage, twusername))
+    msg("TRACE", "tweeted '%s' as user '%s'", twmessage, twusername)
     return true
 end
 
-module.Loaded("tweeting", "Tweeting Functionality", 1, "http://code.google.com/p/juiz/wiki/tweeting")
+jmodule.Loaded("tweeting", "Tweeting Functionality", 1, "http://code.google.com/p/juiz/wiki/tweeting")

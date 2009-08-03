@@ -45,7 +45,7 @@ function reply(rrecp, rsender, rtext, ...)
         say(rrecp, "%s: %s", rsender, string.format(rtext, ...))
     end
 end
+
 safe_require("socket.http")
 safe_require("mime")
-
 jmodule.Register("util", "Utility Functions", 1, "http://code.google.com/p/juiz/wiki/util")

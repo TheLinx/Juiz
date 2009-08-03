@@ -26,13 +26,13 @@ ccmd.Add("exec", {function (recp, sender, command, host)
         reply(recp, sender, "You're not authorized to use that command.")
         return true
     end
-    if command:find("os.execute") then
-        reply(recp, sender, "Denied.")
+    if not DEBUG then
+        reply(recp, sender, "This command can only be used in debugging mode.")
         return true
     end
     loadstring(command)()
     return true
-end, "<code>", "executes raw Lua code. (owner only)"})
+end, "<code>", "executes raw Lua code. (owner and debug only)"})
 ccmd.Add("install", {function (recp, sender, file, host)
 -- install <filename> - loads a Lua script from the modules directory. (owner only)
     if not isowner(sender, host) then

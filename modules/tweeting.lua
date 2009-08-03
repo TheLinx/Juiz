@@ -1,7 +1,7 @@
 --[[
 ---- Tweeting functionality ----
 Made by: TheLinx (http://www.unreliablepollution.net/)
-License: MIT
+License: Public Domain
 --]]
 
 local twbaserequest = [[POST /statuses/update.xml HTTP/1.0

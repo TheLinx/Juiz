@@ -2,7 +2,7 @@
 ---- Data saving ----
 Made by: TheLinx (http://www.unreliablepollution.net/)
 Depends on:
-  * Utility functions
+  * Utility functions (any version)
 License: MIT
 --]]
 jmodule.DepCheck({"util"},{1})
@@ -17,13 +17,12 @@ function data.Get(cat)
     return datatable[cat]
 end
 function data.Add(cat, adata, save)
-    if type(adata) == "string" then adata = {adata} end
+    if type(adata) ~= "table" then adata = {adata} end
     local existingdata = data.Get(cat)
     if existingdata ~= nil then
         msg("TRACE", "Data for category %s already there!", cat)
         for k,v in pairs(existingdata) do print(k,v) adata[#adata + 1] = v end
     end
-    print(unpack(adata))
     data.Set(cat, adata)
     if save ~= false then data.Save() end
 end
@@ -35,7 +34,6 @@ function data.Save()
     msg("TRACE", "Saving data...")
     local lastcat,fcon = '','---JUIZ IRC BOT SAVED DATA---'
     local tbl = datatable
-    --local tbl = table.sort(datatable, function(a,b) )
     for k,v in pairs(datatable) do
         if lastcat ~= k then
             msg("TRACE", "Changing category to %s", k)

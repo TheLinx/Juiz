@@ -1,16 +1,7 @@
+#!/usr/bin/env lua
 require("socket")
 local tcp,alive,lastsend,sendqueue,configfile = socket.tcp(),true,0,{},"config.txt"
-version,config,jmodule,loaded,hook,hooks = "Juiz IRC Bot",{},{},{},{},{}
-
-for _,v in pairs(arg) do
-    if v == "--debug" then
-        DEBUG = true
-    end
-    if v == "--dont-connect" then
-        DONTCONNECT = true
-    end
-    
-end
+version,config,jmodule,loaded,hook,hooks = "Juiz IRC Bot 1.0.0",{},{},{},{},{}
 
 function msg(mtype, mtext, ...)
     if mtype == "CHATLOG" then
@@ -19,9 +10,30 @@ function msg(mtype, mtext, ...)
         print(string.format("Loaded %s", string.format(mtext, ...)))
     elseif mtype == "ERROR" or mtype == "NOTIFY" then
         print(string.format("%s: %s", mtype, string.format(mtext, ...)))
-    elseif DEBUG and mtype == "TRACE" then
+    elseif DEBUG and (mtype == "TRACE" or mtype == "DEBUG") then
         print(string.format("%s: %s", mtype, string.format(mtext, ...)))
     end
+end
+
+for _,v in pairs(arg) do
+    if v == "--help" then
+        print(string.format("This is the %s. (%s)\nCommand line options:\n  --debug - activates debugging mode.\n  --dont-connect - loads modules then stops.\n  --config <filename> - use a different configuration file than config.txt",
+        version, "http://code.google.com/p/juiz/"))
+        error()
+    end
+    if v == "--debug" then
+        DEBUG = true
+        msg("NOTIFY", "Debug mode activated.")
+    end
+    if v == "--dont-connect" then
+        DONTCONNECT = true
+        msg("NOTIFY", "Not gonna connect.")
+    end
+    if prevv == "--config" then
+        configfile = v
+        msg("NOTIFY", "Setting configfile to %s.", configfile)
+    end
+    prevv = v
 end
 
 local function send(stext)
@@ -188,9 +200,9 @@ function loadmodule(filename)
 end
 
 -- Let's load the config
-local fopn = io.open("config.txt", "r")
+local fopn = io.open(configfile, "r")
 if not fopn then
-    local fopn = io.open("config.txt", "w")
+    local fopn = io.open(configfile, "w")
     fopn:write("SERVER\nPORT\nNICKNAME\nOWNER PASSWORD\nTRIGGER")
     fopn:close()
     msg("NOTIFY", "Please edit the configuration file created in the current directory.")
@@ -206,7 +218,7 @@ else
     config.pass = tmp[4]
     config.trigger = tmp[5]
     config.admins = {}
-    config.modules = {"util","data","ccmd","admin","help","lastfm"}
+    config.modules = {"util","data","ccmd","admin","help"}
 end
 -- Load the selected modules
 if alive == true then

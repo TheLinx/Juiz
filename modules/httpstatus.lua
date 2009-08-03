@@ -2,9 +2,9 @@
 ---- HTTP status checker ----
 Made by: TheLinx (http://www.unreliablepollution.net/)
 Depends on:
-  * Utility functions
-  * Chat command functionality
-License: MIT
+  * Utility functions (any version)
+  * Chat command functionality (any version)
+License: Public Domain
 --]]
 jmodule.DepCheck({"util","ccmd"},{1,1})
 

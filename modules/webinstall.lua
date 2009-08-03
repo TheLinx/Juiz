@@ -3,8 +3,8 @@
 Made by: TheLinx
 Depends on:
   * Utility functions (any version)
-  * Chat command functionality
-License: MIT
+  * Chat command functionality (any version)
+License: Public Domain
 --]]
 jmodule.DepCheck({"util","ccmd"}, {1,1})
 

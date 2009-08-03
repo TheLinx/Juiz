@@ -3,7 +3,7 @@
 Made by: TheLinx (http://www.unreliablepollution.net/)
 Depends on:
   * Utility functions (any version)
-License: MIT
+License: Public Domain
 --]]
 jmodule.DepCheck({"util"},{1})
 

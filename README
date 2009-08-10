@@ -1,0 +1,5 @@
+You need Lua 5.1 and LuaSocket.
+
+Run ./juiz to get a basic configuration file.
+
+Use the --help trigger if you need help.

@@ -1,12 +1,11 @@
---[[
----- Hello World command ----
-Made by: TheLinx (http://www.unreliablepollution.net/)
-Depends on:
-  * Chat command functionality (any version)
-  * Utility functions (any version)
-License: Public Domain
---]]
-
+---------------------------------------------------------------------
+--- Hello World command
+--- Made by: Linus Sjögren (thelinx@unreliablepollution.net)
+--- Depends on:
+---  * Chat command functionality (any version)
+---  * Utility functions (any version)
+--- License: Public Domain
+---------------------------------------------------------------------
 ccmd.Add("hello", {function (recp, sender)
     reply(recp, sender, "Hello World!")
     return true

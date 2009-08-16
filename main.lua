@@ -1,9 +1,36 @@
 #!/usr/bin/env lua
 require("socket")
 local tcp,alive,lastsend,sendqueue,configfile = socket.tcp(),true,0,{},"config.txt"
-version,config,jmodule,loaded,hook,hooks = "Juiz IRC Bot 1.0.0",{},{},{},{},{}
+version,config,jmodule,loaded,hook,hooks,juiz,util = "Juiz IRC Bot 1.0.0",{},{},{},{},{},{},{}
+for _,v in pairs(arg) do
+    if v == "--help" then
+        print(string.format("This is the %s. (%s)\nCommand line options:\n  --debug - activates debugging mode.\n  --dont-connect - loads modules then stops.\n  --config <filename> - use a different configuration file than config.txt",
+        version, "http://code.google.com/p/juiz/"))
+        error()
+    end
+    if v == "--debug" then
+        DEBUG = true
+        print("Debug mode activated.")
+    end
+    if v == "--dont-connect" then
+        DONTCONNECT = true
+        print("Not gonna connect.")
+    end
+    if prevv == "--config" then
+        configfile = v
+        print(string.format("Setting configfile to %s.", configfile))
+    end
+    prevv = v
+end
 
-function msg(mtype, mtext, ...)
+--- Print info to the console.
+-- Useful for debugging, use DEBUG for info that you only need while
+-- debugging, ERROR for fatal errors and NOTIFY for stuff that may
+-- be useful to the user.
+-- @param mtype The verbosity level.
+-- @param mtext The string to print.
+-- @param ... Extra parameters to be applied to mtext with a string.format.
+function util.msg(mtype, mtext, ...)
     if mtype == "CHATLOG" then
         print(string.format(mtext, ...))
     elseif mtype == "INSTALL" then
@@ -15,27 +42,6 @@ function msg(mtype, mtext, ...)
     end
 end
 
-for _,v in pairs(arg) do
-    if v == "--help" then
-        print(string.format("This is the %s. (%s)\nCommand line options:\n  --debug - activates debugging mode.\n  --dont-connect - loads modules then stops.\n  --config <filename> - use a different configuration file than config.txt",
-        version, "http://code.google.com/p/juiz/"))
-        error()
-    end
-    if v == "--debug" then
-        DEBUG = true
-        msg("NOTIFY", "Debug mode activated.")
-    end
-    if v == "--dont-connect" then
-        DONTCONNECT = true
-        msg("NOTIFY", "Not gonna connect.")
-    end
-    if prevv == "--config" then
-        configfile = v
-        msg("NOTIFY", "Setting configfile to %s.", configfile)
-    end
-    prevv = v
-end
-
 local function send(stext)
     local sbytes, serror = tcp:send(stext)
     if sbytes ~= stext:len() then
@@ -44,17 +50,41 @@ local function send(stext)
     lastsend = os.time()
     return true
 end
-function qsend(stext)
+
+--- Send raw IRC data.
+-- Use this function to send any raw IRC data to the server.
+-- Note that you should not include \r\n at the end, it is
+-- applied automatically.
+-- @param stext The data to send.
+function juiz.send(stext)
     table.insert(sendqueue, stext.."\r\n")
 end
-function say(srecp, stext, ...)
-    qsend(string.format("PRIVMSG %s :%s", srecp, string.format(stext, ...)))
+
+--- Send a message.
+-- This function makes Juiz talk, either via private messaging
+-- or to an entire channel.
+-- @param srecp The recipient of the message.
+-- @param stext The message.
+-- @param ... Extra parameters to be applied to stext with a string.format.
+function juiz.say(srecp, stext, ...)
+    juiz.send(string.format("PRIVMSG %s :%s", srecp, string.format(stext, ...)))
 end
-function hook.Add(trigger, func)
-    msg("TRACE", "Hooking %s to trigger %s", tostring(func), trigger)
+
+--- Hooks a function to an event.
+-- Allows functions to be triggered on events like messages,
+-- channel joins, et.c.
+-- @param trigger The event to hook to.
+-- @param func The function that should be triggered on the event.
+function juiz.addhook(trigger, func)
+    util.msg("TRACE", "Hooking %s to trigger %s", tostring(func), trigger)
     table.insert(hooks, {trigger, func})
 end
-function hook.Call(trigger, ...)
+
+--- Call all functions hooked to an event.
+-- Use this function in your module to allow other modules to use that data.
+-- @param trigger The event to call.
+-- @param ... Any other arguments will be forwarded to the hooked functions.
+function juiz.callhook(trigger, ...)
     for _,v in pairs(hooks) do
         if v[1] == trigger then
             local co = coroutine.create(function(a, b, c, d, e, f, g) return pcall(v[2], a or nil, b or nil, c or nil, d or nil, e or nil, f or nil, g or nil) end)
@@ -62,6 +92,7 @@ function hook.Call(trigger, ...)
         end
     end
 end
+
 local function connect()
     tcp:settimeout(1,"t")
     tcp:settimeout(1,"b")
@@ -69,23 +100,24 @@ local function connect()
     local cstatus,cerror = tcp:connect(config.server, config.port)
     if not cstatus then
         -- Something went wrong!
-        msg("ERROR", string.format("Connection to %s:%d failed: %s", config.server, config.port, cerror))
+        util.msg("ERROR", string.format("Connection to %s:%d failed: %s", config.server, config.port, cerror))
         error()
         return false
     end
-    msg("NOTIFY", "Connected.")
+    util.msg("NOTIFY", "Connected.")
     local sstatus, serror = send(string.format("NICK %s\r\nUSER %s %s %s :Tag\r\n", config.nick, config.nick, config.nick, config.server))
     if not sstatus then
-        msg("ERROR", string.format("Sending login failed: %s", serror))
+        util.msg("ERROR", string.format("Sending login failed: %s", serror))
         error()
     end
-    msg("NOTIFY", "Sent login.")
+    util.msg("NOTIFY", "Sent login.")
     return true
 end
-function mainloop()
+
+local function mainloop()
     local rdata, rerror = tcp:receive("*l")
     if not rdata and rerror and #rerror > 0 and rerror ~= "timeout" then
-        msg("ERROR", string.format("Lost connection to %s:%d: %s", config.server, config.port, rerror))
+        util.msg("ERROR", string.format("Lost connection to %s:%d: %s", config.server, config.port, rerror))
         error()
         return false
     elseif not rdata then
@@ -93,54 +125,61 @@ function mainloop()
     end
     return processdata(rdata)
 end
+
 local function queue()
     if sendqueue[1] and os.time() - lastsend > 0.14 then
         return send(table.remove(sendqueue,1))
     end
     return true
 end
-function processdata(pdata)
+
+local function processdata(pdata)
     local origin, command, recp, param = string.match(pdata, "^:(%S+) (%S+) (%S+)[^:]*:(.+)")
     if not origin then origin, command, param = string.match(pdata, "^:(%S+) (%S+)[^:]*:(.+)") end
     if not origin then origin, command, param = string.match(pdata, "^:(%S+) (%S+) (%S+)(.*)") end
     if not origin then command, param = string.match(pdata, "^:([^:]+ ):(.+)") end
     if not command then command, param = string.match(pdata, "^(%S+) :(%S+)") end
     if not command then
-        msg("TRACE", "Unparsed: " .. pdata)
+        util.msg("TRACE", "Unparsed: " .. pdata)
         return true
     end
-    msg("RAW", "origin: %s, command: %s, recp: %s, param: %s", origin or "nil", command or "nil", recp or "nil", param or "nil")
+    util.msg("RAW", "origin: %s, command: %s, recp: %s, param: %s", origin or "nil", command or "nil", recp or "nil", param or "nil")
     if origin ~= nil then onick,ohost = origin:match("^(%S+)!(%S+)") end
     if command:lower() == "ping" then
         qsend(string.format("PONG %s", param))
-        msg("TRACE", "Ping requested from server")
+        util.msg("TRACE", "Ping requested from server")
     elseif command:lower() == "privmsg" then
         if recp:lower() == config.nick:lower() and onick:lower() ~= config.nick:lower() then
             if param:match("[^%w]?VERSION[^%w]?") then
-                say(onick, version)
-                msg("NOTIFY", string.format("Version requested from %s", onick))
+                juiz.say(onick, version)
+                util.msg("NOTIFY", string.format("Version requested from %s", onick))
                 return true
             elseif param:match("[^%w]?PING[^%w]?") then
-                qsend(string.format("PONG %s", ohost))
-                msg("NOTIFY", string.format("Ping requested from %s", onick))
+                juiz.send(string.format("PONG %s", ohost))
+                util.msg("NOTIFY", string.format("Ping requested from %s", onick))
                 return true
             end
         end
-        hook.Call("message", onick, recp, param, ohost)
+        juiz.callhook("message", onick, recp, param, ohost)
     elseif command:lower() == "join" then
         if onick:lower() == config.nick:lower() then
-            msg("NOTIFY", string.format("Joined channel %s", param))
+            util.msg("NOTIFY", string.format("Joined channel %s", param))
         end
-        hook.Call("join", onick, param, ohost)
+        juiz.callhook("join", onick, param, ohost)
     elseif command:lower() == "part" then
         if onick:lower() == config.nick:lower() then
-            msg("NOTIFY", string.format("Left channel %s", param))
+            util.msg("NOTIFY", string.format("Left channel %s", param))
         end
-        hook.Call("part", onick, param, ohost)
+        juiz.callhook("part", onick, param, ohost)
     end
     return true
 end
-function explode(div,str)
+
+--- Splits a string into a table.
+-- @param div The divider.
+-- @param str The string.
+-- @return table The resulting table.
+function util.explode(div,str)
     if (div=='') then return false end
         local pos,arr = 0,{}
         -- for each divider found
@@ -151,17 +190,32 @@ function explode(div,str)
     table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
     return arr
 end
-function jmodule.Register(safename, humanname, version, info)
+
+--- Tells Juiz that your module has been loaded.
+-- Use this so both the user can see that the module has loaded
+-- and so other developers can use your functions in their
+-- modules without big trouble.
+-- @param safename The module name that other modules will refer to your module by.
+-- @param humanname The module name that other users will refer to your module by.
+-- @param version Just in case another module requires a recent version of your module.
+-- @param info A link to your website or something.
+function juiz.registermodule(safename, humanname, version, info)
     if info == nil then
-        msg("INSTALL", "%s r%d", humanname, version)
+        util.msg("INSTALL", "%s r%d", humanname, version)
     else
-        msg("INSTALL", "%s r%d (%s)", humanname, version, info)
+        util.msg("INSTALL", "%s r%d (%s)", humanname, version, info)
     end
     table.insert(loaded, {safename,version})
 end
-function jmodule.DepCheck(dmodules,dversions)
+
+--- Checks that all dependencies has been loaded.
+-- Note that you have to specify a version. Use 1 if no special
+-- version is required. Errors if dependencies are not satisfied.
+-- @param dmodules A table (it has to be) with the safenames of the required modules.
+-- @param dversions A table (it has to be) with the versions of the required modules.
+function juiz.depcheck(dmodules,dversions)
     for k,dmodule in pairs(dmodules) do
-        msg("TRACE", "Checking if module %s has been loaded", dmodule)
+        util.msg("TRACE", "Checking if module %s has been loaded", dmodule)
         local dversion,mloaded = dversions[k],false
         for _,v in pairs(loaded) do
             if v[1] == dmodule then
@@ -173,15 +227,15 @@ function jmodule.DepCheck(dmodules,dversions)
             end
         end
         if mloaded == true then
-            msg("TRACE", "Module %s r%d has been loaded", dmodule, dversion)
+            util.msg("TRACE", "Module %s r%d has been loaded", dmodule, dversion)
         else
-            msg("TRACE", "Module %s r%d has not been loaded", dmodule, dversion)
+            util.msg("TRACE", "Module %s r%d has not been loaded", dmodule, dversion)
             if type(mloaded) == "table" then
                 if mloaded[1] == "old" then
-                    msg("ERROR", "Module %s is outdated (r%d is installed, r%d is required)", dmodule, mloaded[2], dversion)
+                    util.msg("ERROR", "Module %s is outdated (r%d is installed, r%d is required)", dmodule, mloaded[2], dversion)
                 end
             else
-                msg("ERROR", "Module %s is not available", dmodule)
+                util.msg("ERROR", "Module %s is not available", dmodule)
             end
             error("Dependencies not satisfied.")
             return false
@@ -189,12 +243,15 @@ function jmodule.DepCheck(dmodules,dversions)
     end
     return true
 end
-function loadmodule(filename)
+
+--- Loads a module -- the safe way.
+-- @param filename The filename (without modules/) that should be loaded.
+function juiz.loadmodule(filename)
     filename = string.format("modules/%s.lua", filename:gsub(".lua", ""))
-    msg("TRACE", "Loading module %s", filename)
+    util.msg("TRACE", "Loading module %s", filename)
     local ret,err = pcall(dofile, filename)
     if not ret then
-        msg("ERROR", "Could not load module '%s', error: %s", filename:gsub("modules/", ""), err or "nil")
+        util.msg("ERROR", "Could not load module '%s', error: %s", filename:gsub("modules/", ""), err or "nil")
     end
     return ret
 end
@@ -205,7 +262,7 @@ if not fopn then
     local fopn = io.open(configfile, "w")
     fopn:write("SERVER\nPORT\nNICKNAME\nOWNER PASSWORD\nTRIGGER")
     fopn:close()
-    msg("NOTIFY", "Please edit the configuration file created in the current directory.")
+    util.msg("NOTIFY", "Please edit the configuration file created in the current directory.")
     alive = false
 else
     local tmp = {}
@@ -224,7 +281,7 @@ end
 if alive == true then
     for _,file in pairs(config.modules) do
         file = tostring(file)
-        loadmodule(file)
+        juiz.loadmodule(file)
     end
 end
 
@@ -236,7 +293,7 @@ if alive == true then
         alive = false
     end
 end
-hook.Call("connected")
+juiz.callhook("connected")
 -- Now that we're alive and well, let's start receiving data
 while alive == true do
     if not mainloop() then

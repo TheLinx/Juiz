@@ -1,10 +1,13 @@
---[[
----- Chat command functionality ----
-Made by: TheLinx (http://www.unreliablepollution.net/)
-License: MIT
---]]
+---------------------------------------------------------------------
+--- Chat command functionality.
+--- Made by: Linus Sjögren (thelinx@unreliablepollution.net)
+--- License: MIT
+---------------------------------------------------------------------
 if not ccmd then ccmd,ccmds = {},{} end
 
+--- Adds a chat command.
+-- @param trigger The chat trigger
+-- @param func The function that should be called.
 function ccmd.Add(trigger, func)
     for k,v in pairs(ccmds) do
         if v[1]:lower() == trigger:lower() then
@@ -12,10 +15,10 @@ function ccmd.Add(trigger, func)
             table.remove(ccmds, k)
         end
     end
-    msg("TRACE", "Added chat command %s", trigger)
+    util.msg("TRACE", "Added chat command %s", trigger)
     table.insert(ccmds, {trigger, func})
 end
-function ccmd.Call(trigger, ...)
+local function ccmd.Call(trigger, ...)
     local arg = {...}
     for _,v in pairs(ccmds) do
         if v[1]:lower() == trigger:lower() then
@@ -27,10 +30,10 @@ function ccmd.Call(trigger, ...)
                 co = coroutine.create(function(a, b, c, d, e, f, g) return pcall(v[2], a or nil, b or nil, c or nil, d or nil, e or nil, f or nil, g or nil) end)
             end
             local _,cret,cerr = coroutine.resume(co, ...)
-            msg("TRACE", "chat command '%s' returned %s, err = %s", trigger, tostring(cret), cerr or "nil")
+            util.msg("TRACE", "chat command '%s' returned %s, err = %s", trigger, tostring(cret), cerr or "nil")
             if not cret then
-                reply(arg[1], arg[2], "Sorry, the function encountered an error. Please check the console output for more details.")
-                msg("ERROR", err)
+                juiz.reply(arg[1], arg[2], "Sorry, the function encountered an error. Please check the console output for more details.")
+                util.msg("ERROR", err)
             end
             return true
         end
@@ -50,14 +53,14 @@ hook.Add("message", function(onick, recp, param, ohost)
         if param:find(' ') then
         -- Command has arguments
             botcmd,args = param:match("^(%S+) (.*)")
-            msg("TRACE", "Command %s:%s triggered by %s", botcmd, args, onick)
+            util.msg("TRACE", "Command %s:%s triggered by %s", botcmd, args, onick)
         else
         -- Only a command
             botcmd = param
-            msg("TRACE", "Command %s triggered by %s", botcmd, onick)
+            util.msg("TRACE", "Command %s triggered by %s", botcmd, onick)
         end
         if not ccmd.Call(botcmd, onick, onick, args or nil, ohost) then
-            say(onick, "Sorry, I don't have the command \"%s\".", botcmd)
+            juiz.say(onick, "Sorry, I don't have the command \"%s\".", botcmd)
         end
     else
         if param:sub(1,config.trigger:len()) == config.trigger or
@@ -75,18 +78,18 @@ hook.Add("message", function(onick, recp, param, ohost)
             if param:find(' ') then
             -- Command has arguments
                 botcmd,args = param:match("^(%S+) (.*)")
-                msg("TRACE", "Command %s:%s triggered by %s", botcmd, args, onick)
+                util.msg("TRACE", "Command %s:%s triggered by %s", botcmd, args, onick)
             else
             -- Only a command
                 botcmd = param
-                msg("TRACE", "Command %s triggered by %s", botcmd, onick)
+                util.msg("TRACE", "Command %s triggered by %s", botcmd, onick)
             end
             if not ccmd.Call(botcmd, recp, onick, args or nil, ohost) and mentioned then
             -- Only apologize if mentioned
-                reply(recp, onick, "Sorry, I don't have the command \"%s\".", botcmd)
+                juiz.reply(recp, onick, "Sorry, I don't have the command \"%s\".", botcmd)
             end
         end
     end
 end)
 
-jmodule.Register("ccmd", "Chat Command Functionality", 1, "http://code.google.com/p/juiz/wiki/ccmd")
+juiz.registermodule("ccmd", "Chat Command Functionality", 1, "http://code.google.com/p/juiz/wiki/ccmd")

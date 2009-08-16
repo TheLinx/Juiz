@@ -1,12 +1,13 @@
---[[
----- Calculator ----
-Made by: henrikb4 (henrikb4@gmail.com)
-Depends on:
-  * Utility functions (any version)
-  * Chat command functionality (any version)
-  * (External) LRexLib
-License:
-Copyright (c) 2009, Henrik "henrikb4" Enggaard Hansen (henrikb4@gmail.com)
+---------------------------------------------------------------------
+--- Calculator
+--- Made by: Henrik "henrikb4" Enggaard Hansen (henrikb4@gmail.com)
+--- License: MIT
+--- Depends on:
+---  * Utility functions (any version)
+---  * Chat command functionality (any version)
+---  * (External) LRexLib
+--- License:
+--[[ Copyright (c) 2009, Henrik "henrikb4" Enggaard Hansen (henrikb4@gmail.com)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,9 +31,9 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
---]]
-jmodule.DepCheck({"util","ccmd"},{1,1})
-rex = safe_require('rex_pcre')
+--]]-----------------------------------------------------------------
+juiz.depcheck({"util","ccmd"},{1,1})
+rex = util.require('rex_pcre')
 
 -- We make an alias of all of the normal functions
 for k,v in pairs(math) do
@@ -53,7 +54,6 @@ regex = '^(?:(?:ceil|abs|floor|mod|exp|log|pow|sqrt|acos|asin|atan|cos|sin|tan|d
 
 -- Finally, we can define the function that we call in the chat
 ccmd.Add("calc", {function (recp, sender, equ)
--- calc <expression> - Calculates expression and replies with the result.
     result = 'ERROR'
     match = rex.match(equ, regex)
     if match == equ then
@@ -70,4 +70,4 @@ ccmd.Add("calc", {function (recp, sender, equ)
     return true
 end, "<expression>", "Calculates expression and replies with the result."})
 
-jmodule.Register("calculator", "Calculator", 1, "http://code.google.com/p/juiz/wiki/calculator")
+juiz.registermodule("calculator", "Calculator", 1, "http://code.google.com/p/juiz/wiki/calculator")

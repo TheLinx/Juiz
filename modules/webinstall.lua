@@ -1,29 +1,24 @@
---[[
----- HTTP module installlation ----
-Made by: TheLinx
-Depends on:
-  * Utility functions (any version)
-  * Chat command functionality (any version)
-License: Public Domain
---]]
-jmodule.DepCheck({"util","ccmd"}, {1,1})
+---------------------------------------------------------------------
+--- HTTP module installation
+--- Made by: Linus Sjögren (thelinx@unreliablepollution.net)
+--- Depends on:
+---  * Chat command functionality (any version)
+---  * Utility functions (any version)
+--- License: Public Domain
+---------------------------------------------------------------------
+juiz.depcheck({"util","ccmd"}, {1,1})
 
-ccmd.Add("webinstall", {function (recp, sender, file, host)
--- webinstall <url> - downloads and includes a Lua file. (owner only)
-    if not isowner(sender, host) then
-        reply(recp, sender, "You're not authorized to use that command.")
-        return true
-    end
-    if not file then
-        reply(recp, sender, "Insufficient arguments supplied!")
-    end
+--- Downloads and loads a module.
+-- @param file The URI of the file to download.
+-- @return boolean true or false depending on success of loadmodule()
+function webinstall (file)
     local fcon,_,h = http.request(file)
     local fnam
     for _,v in pairs(h) do
-        msg("TRACE", "Checking for filename in '%s'", v)
+        util.msg("TRACE", "Checking for filename in '%s'", v)
         if string.find(v, "lua") then
             _,_,fnam = string.find(v, '([^/"]+).lua')
-            msg("TRACE", "Got filename: %s.lua", fnam)
+            util.msg("TRACE", "Got filename: %s.lua", fnam)
         end
     end
     if not fnam then
@@ -33,11 +28,26 @@ ccmd.Add("webinstall", {function (recp, sender, file, host)
     fopn:write(fcon)
     fopn:close()
     if loadmodule(fnam) then
-        reply(recp, sender, "Done!")
+        return true
     else
-        reply(recp, sender, "Sorry, the module could not be loaded. Check the console output for more info.")
+        return false
+    end
+end
+
+ccmd.Add("webinstall", {function (recp, sender, file, host)
+    if not isowner(sender, host) then
+        juiz.reply(recp, sender, "You're not authorized to use that command.")
+        return true
+    end
+    if not file then
+        juiz.reply(recp, sender, "Insufficient arguments supplied!")
+    end
+    if webinstall(file) then
+        juiz.reply(recp, sender, "Success!")
+    else
+        juiz.reply(recp, sender, "Installation failed!")
     end
     return true
 end, "<url>", "downloads and includes a Lua file. (owner only)"})
 
-jmodule.Register("webinstall", "HTTP Module Installation", 1, "http://code.google.com/p/juiz/wiki/webinstall")
+juiz.registermodule("webinstall", "HTTP Module Installation", 1, "http://code.google.com/p/juiz/wiki/webinstall")

@@ -40,7 +40,7 @@ function cmd_help(recp, sender, command)
         for _,v in pairs(ccmds) do
             if v[1] ~= "help" and
                v[1] ~= "commands" then
-                say(recp, v[1])
+                juiz.say(recp, v[1])
             end
         end
         juiz.say(recp, "--------------------")
@@ -49,6 +49,6 @@ function cmd_help(recp, sender, command)
     end
 end
 
-ccmd.Add("help", cmd_help)
-ccmd.Add("commands", cmd_help)
-juiz.registermodule("help", "Help Command", 1, "http://code.google.com/p/juiz/wiki/help")
+juiz.addccmd("help", cmd_help)
+juiz.addccmd("commands", cmd_help)
+juiz.registermodule("help", "Help Command", 1)

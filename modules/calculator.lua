@@ -53,21 +53,21 @@ end
 regex = '^(?:(?:ceil|abs|floor|mod|exp|log|pow|sqrt|acos|asin|atan|cos|sin|tan|deg|rad|random)\\(|pi|\\(|\\)|-|\\+|\\*|/|\\d|\\.|\\^|\\x2C| )+$'
 
 -- Finally, we can define the function that we call in the chat
-ccmd.Add("calc", {function (recp, sender, equ)
+juiz.addccmd("calc", {function (recp, sender, equ)
     result = 'ERROR'
     match = rex.match(equ, regex)
     if match == equ then
        -- We use loadstring to compile the function
        if pcall(function () f = assert(loadstring('result = '..equ)) end) then
          f()
-         reply(recp, sender, "%s = %s", equ, result)
+         juiz.reply(recp, sender, "%s = %s", equ, result)
        else
-         reply(recp, sender, 'Invald input')
+         juiz.reply(recp, sender, 'Invald input')
        end
     else
-       reply(recp, sender, 'Invalid input')
+       juiz.reply(recp, sender, 'Invalid input')
     end
     return true
 end, "<expression>", "Calculates expression and replies with the result."})
 
-juiz.registermodule("calculator", "Calculator", 1, "http://code.google.com/p/juiz/wiki/calculator")
+juiz.registermodule("calculator", "Calculator", 1)

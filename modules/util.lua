@@ -27,7 +27,7 @@ juiz.leave = juiz.part
 --- Checks if a user is an owner.
 -- @param nick The nickname of the user to check.
 -- @param host The hostname of the user to check.
-function util.isowner(nick, host)
+function juiz.userisowner(nick, host)
     local owner = false
     for _,v in pairs(config.admins) do
         if nick:lower() == v[1]:lower() and host:lower() == v[2]:lower() then owner = true end
@@ -39,7 +39,7 @@ end
 -- @param file The file to require.
 function util.require(file)
     if required[file] ~= nil then
-        juiz.msg("TRACE", "File %s has already been required before, loading from cache.", file)
+        util.msg("TRACE", "File %s has already been required before, loading from cache.", file)
         return required[file]
     end
     local success,val = pcall(require, file)
@@ -47,7 +47,7 @@ function util.require(file)
         required[file] = val
         return val
     else
-        juiz.msg("TRACE", "safe_require error is %s", val or "nil")
+        util.msg("TRACE", "require error is %s", val or "nil")
         error(string.format("%s not available", file))
     end
     return false
@@ -75,7 +75,7 @@ end
 -- @param rsender The user to reply to.
 -- @param rtext The message.
 -- @param ... Extra parameters to be applied to rtext with a string.format.
-function juiz.sreply(rrecp, rsender, rtext, ...)
+function juiz.reply(rrecp, rsender, rtext, ...)
     if rrecp == rsender then
         juiz.say(rrecp, rtext, ...)
     else
@@ -85,4 +85,4 @@ end
 
 util.require("socket.http")
 util.require("mime")
-juiz.registermodule("util", "Utility Functions", 2, "http://code.google.com/p/juiz/wiki/util")
+juiz.registermodule("util", "Utility Functions", 3)

@@ -7,7 +7,7 @@
 ---  * Utility functions (any version)
 --- License: MIT
 ---------------------------------------------------------------------
-juiz.depcheck({"util","ccmd","data"},{1,1,1})
+juiz.depcheck({"util","ccmd","data"},{1,1,2})
 
 ccmd.Add("tell", {function (recp, sender, message)
     if message == '' or message == nil then
@@ -17,12 +17,12 @@ ccmd.Add("tell", {function (recp, sender, message)
     messageto = string.sub(message, 0, message:find(" ")-1)
     messagetext = string.sub(message, message:find(" ")+1)
     if messageto:lower() == config.nick:lower() or sender:lower() == messageto:lower() or messageto == '' or messagetext == '' then
-        reply(recp, sender, "You can't do that.")
+        juiz.reply(recp, sender, "You can't do that.")
         return true
     end
     util.msg("TRACE", "%s left a message to %s: %s", sender, messageto, messagetext)
     juiz.reply(recp, sender, "Okay, I'll tell %s that when he/she is back.", messageto)
-    data.Add("telldb-"..messageto, string.format("%s %s", sender, messagetext))
+    juiz.adddata("telldb-"..messageto, string.format("%s %s", sender, messagetext))
     return true
 end, "<user> <message>", "takes a message for another user, then tells them when they come back."})
 function usercheck(sender, recp)
@@ -38,9 +38,9 @@ function usercheck(sender, recp)
         local messagefrom,messagetext = telldb:match("^(%S+) (.*)")
         juiz.reply(recp, sender, "%s left this message to you: '%s'", messagefrom, tostring(messagetext))
     end
-    data.Remove("telldb-"..sender)
+    juiz.removedata("telldb-"..sender)
 end
 
 hook.Add("message", usercheck)
 hook.Add("join", usercheck)
-juiz.registermodule("tell", "Tell Command", 1, "http://code.google.com/p/juiz/wiki/tell")
+juiz.registermodule("tell", "Tell Command", 1)

@@ -7,7 +7,7 @@
 ---------------------------------------------------------------------
 juiz.depcheck({"util"},{1})
 
-hook.Add("connected", function ()
+juiz.addhook("connected", function ()
     for _,channel in pairs(config.channels) do
         join(channel)
     end

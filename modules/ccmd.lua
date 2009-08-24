@@ -3,12 +3,12 @@
 --- Made by: Linus Sjögren (thelinx@unreliablepollution.net)
 --- License: MIT
 ---------------------------------------------------------------------
-if not ccmd then ccmd,ccmds = {},{} end
+if not ccmds then ccmds = {} end
 
 --- Adds a chat command.
 -- @param trigger The chat trigger
 -- @param func The function that should be called.
-function ccmd.Add(trigger, func)
+function juiz.addccmd(trigger, func)
     for k,v in pairs(ccmds) do
         if v[1]:lower() == trigger:lower() then
         -- Remove imposters
@@ -18,7 +18,7 @@ function ccmd.Add(trigger, func)
     util.msg("TRACE", "Added chat command %s", trigger)
     table.insert(ccmds, {trigger, func})
 end
-local function ccmd.Call(trigger, ...)
+function juiz.callccmd(trigger, ...)
     local arg = {...}
     for _,v in pairs(ccmds) do
         if v[1]:lower() == trigger:lower() then
@@ -33,14 +33,14 @@ local function ccmd.Call(trigger, ...)
             util.msg("TRACE", "chat command '%s' returned %s, err = %s", trigger, tostring(cret), cerr or "nil")
             if not cret then
                 juiz.reply(arg[1], arg[2], "Sorry, the function encountered an error. Please check the console output for more details.")
-                util.msg("ERROR", err)
+                util.msg("ERROR", cerr)
             end
             return true
         end
     end
     return false
 end
-hook.Add("message", function(onick, recp, param, ohost)
+juiz.addhook("message", function(onick, recp, param, ohost)
     local args = nil
     if recp:lower() == config.nick:lower() and onick:lower() ~= config.nick:lower() then
     -- Private Message
@@ -59,7 +59,7 @@ hook.Add("message", function(onick, recp, param, ohost)
             botcmd = param
             util.msg("TRACE", "Command %s triggered by %s", botcmd, onick)
         end
-        if not ccmd.Call(botcmd, onick, onick, args or nil, ohost) then
+        if not juiz.callccmd(botcmd, onick, onick, args or nil, ohost) then
             juiz.say(onick, "Sorry, I don't have the command \"%s\".", botcmd)
         end
     else
@@ -84,7 +84,7 @@ hook.Add("message", function(onick, recp, param, ohost)
                 botcmd = param
                 util.msg("TRACE", "Command %s triggered by %s", botcmd, onick)
             end
-            if not ccmd.Call(botcmd, recp, onick, args or nil, ohost) and mentioned then
+            if not juiz.callccmd(botcmd, recp, onick, args or nil, ohost) and mentioned then
             -- Only apologize if mentioned
                 juiz.reply(recp, onick, "Sorry, I don't have the command \"%s\".", botcmd)
             end
@@ -92,4 +92,4 @@ hook.Add("message", function(onick, recp, param, ohost)
     end
 end)
 
-juiz.registermodule("ccmd", "Chat Command Functionality", 1, "http://code.google.com/p/juiz/wiki/ccmd")
+juiz.registermodule("ccmd", "Chat Command Functionality", 1)

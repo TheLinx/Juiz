@@ -2,3 +2,9 @@ Juiz is an extremely modular IRC bot that runs on Lua.
 Anyone can make their own modules which can be enabled on-the-fly.
 Made by Team Unreliable Pollution: http://www.unreliablepollution.net/
 Some modules are licensed as public domain, enjoy!
+
+-- How to install:
+1) Run ./juiz - this will generate a configuration file called config.txt.
+2) Edit that file, then run ./juiz again.
+3) You're set!
+Need more help? Use --help.

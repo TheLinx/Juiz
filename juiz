@@ -8,12 +8,17 @@ for _,v in pairs(arg) do
         print([[Command line options:
   --config <filename> - use a different configuration file than config.txt
   --debug - activates debugging mode.
+  --display-raw-data - activates printing of raw irc data received.
   --dont-connect - loads modules then stops.]])
         error()
     end
     if v == "--debug" then
         DEBUG = true
         print("Debug mode activated.")
+    end
+    if v == "--display-raw-data" then
+        DISPLAYRAWDATA = true
+        print("Will print raw data received.")
     end
     if v == "--dont-connect" then
         DONTCONNECT = true
@@ -43,6 +48,8 @@ function util.msg(mtype, mtext, ...)
         text = string.format("%s: %s", mtype, string.format(mtext, ...))
     elseif DEBUG and (mtype == "TRACE" or mtype == "DEBUG") then
         text = string.format("%s: %s", mtype, string.format(mtext, ...))
+    elseif DISPLAYRAWDATA and mtype == "RAW" then
+        text = string.format("RAW DATA: %s", string.format(mtext, ...))
     end
     if text ~= "" then
         print(text)
@@ -88,7 +95,7 @@ end
 -- @param func The function that should be triggered on the event.
 function juiz.addhook(trigger, func)
     util.msg("TRACE", "Hooking %s to trigger %s", tostring(func), trigger)
-    table.insert(hooks, {trigger, func})
+    return table.insert(hooks, {trigger, func})
 end
 
 --- Call all functions hooked to an event.
@@ -99,7 +106,7 @@ function juiz.callhook(trigger, ...)
     for _,v in pairs(hooks) do
         if v[1] == trigger then
             local co = coroutine.create(function(a, b, c, d, e, f, g) return pcall(v[2], a or nil, b or nil, c or nil, d or nil, e or nil, f or nil, g or nil) end)
-            return coroutine.resume(co, ...)
+            coroutine.resume(co, ...)
         end
     end
 end
@@ -144,23 +151,26 @@ local function processdata(pdata)
         if recp:lower() == config.nick:lower() and onick:lower() ~= config.nick:lower() then
             if param:match("[^%w]?VERSION[^%w]?") then
                 juiz.say(onick, version)
-                util.msg("NOTIFY", string.format("Version requested from %s", onick))
+                util.msg("NOTIFY", "Version requested from %s", onick)
                 return true
             elseif param:match("[^%w]?PING[^%w]?") then
                 juiz.send(string.format("PONG %s", ohost))
-                util.msg("NOTIFY", string.format("Ping requested from %s", onick))
+                util.msg("NOTIFY", "Ping requested from %s", onick)
                 return true
             end
+        end
+        if param:find(string.char(001).."ACTION") then
+                param = "/me "..param:gsub(string.char(001), ""):gsub("ACTION ", "")
         end
         juiz.callhook("message", onick, recp, param, ohost)
     elseif command:lower() == "join" then
         if onick:lower() == config.nick:lower() then
-            util.msg("NOTIFY", string.format("Joined channel %s", param))
+            util.msg("NOTIFY", "Joined channel %s", param)
         end
         juiz.callhook("join", onick, param, ohost)
     elseif command:lower() == "part" then
         if onick:lower() == config.nick:lower() then
-            util.msg("NOTIFY", string.format("Left channel %s", param))
+            util.msg("NOTIFY", "Left channel %s", param)
         end
         juiz.callhook("part", onick, param, ohost)
     end
@@ -180,7 +190,7 @@ local function mainloop()
     local rdata, rerror = tcp:receive("*l")
     while queue() ~= "done" do end
     if not rdata and rerror and #rerror > 0 and rerror ~= "timeout" then
-        util.msg("NOTIFY", string.format("Lost connection to %s:%d: %s", config.server, config.port, rerror))
+        util.msg("NOTIFY", "Lost connection to %s:%d: %s", config.server, config.port, rerror)
         error()
         return false
     elseif not rdata then
@@ -311,14 +321,9 @@ if alive == true then
     end
 end
 -- Now that we're alive and well, let's start receiving data
-while alive == true do
+repeat
     if not mainloop() then
         alive = false
     end
-    --[[
-    if not queue() then
-        alive = false
-    end
-    --]]
-end
+until not alive
 print("Shutting down...")

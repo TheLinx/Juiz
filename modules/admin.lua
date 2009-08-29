@@ -8,6 +8,7 @@
 --- License: MIT
 ---------------------------------------------------------------------
 juiz.depcheck({"ccmd","util"},{1,3})
+
 juiz.addccmd("quit", {function (recp, sender, message, host)
     if not juiz.userisowner(sender, host) then
         juiz.reply(recp, sender, "You're not authorized to use that command.")
@@ -24,12 +25,24 @@ juiz.addccmd("exec", {function (recp, sender, command, host)
         return true
     end
     if not DEBUG then
-        reply(recp, sender, "This command can only be used in debugging mode.")
+        juiz.reply(recp, sender, "This command can only be used in debugging mode.")
         return true
     end
     loadstring(command)()
     return true
 end, "<code>", "executes raw Lua code. (owner and debug only)"})
+juiz.addccmd("debugtoggle", {function (recp, sender, command, host)
+    if not juiz.userisowner(sender, host) then
+        juiz.reply(recp, sender, "You're not authorized to use that command.")
+        return true
+    end
+    if DEBUG then
+        DEBUG = false
+    else
+        DEBUG = true
+    end
+    juiz.reply(recp, sender, "Done!")
+end, "", "toggles Juiz's debug mode. (owner only)"})
 juiz.addccmd("install", {function (recp, sender, file, host)
     if not juiz.userisowner(sender, host) then
         juiz.reply(recp, sender, "You're not authorized to use that command.")

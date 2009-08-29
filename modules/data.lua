@@ -30,7 +30,7 @@ end
 -- @param save Specify "false" if you're going to do a lot of data adding, then save manually.
 function juiz.adddata(id, adata, save)
     if type(adata) ~= "table" then adata = {adata} end
-    local existingdata = data.Get(id)
+    local existingdata = juiz.getdata(id)
     if existingdata ~= nil then
         util.msg("TRACE", "Data for category %s already there!", id)
         for k,v in pairs(existingdata) do print(k,v) adata[#adata + 1] = v end
@@ -85,7 +85,7 @@ if fopn then
             cat = string.sub(line, 2, line:len()-1)
         else
             if string.find(line, "|") then
-                line = explode("|", line)
+                line = util.explode("|", line)
             end
             juiz.setdata(cat, line, false)
         end

@@ -8,7 +8,7 @@
 ---------------------------------------------------------------------
 juiz.depcheck({"util","ccmd"},{1,1})
 
-ccmd.Add("httpstatus", {function (recp, sender, rurl)
+juiz.addccmd("httpstatus", {function (recp, sender, rurl)
     if not rurl:find("http://") then
         rurl = "http://"..rurl
     end
@@ -21,4 +21,4 @@ ccmd.Add("httpstatus", {function (recp, sender, rurl)
     return true
 end, "<url>", "checks HTTP status of target url."})
 
-juiz.registermodule("httpstatus", "HTTP Status Checker", 1, "http://code.google.com/p/juiz/wiki/httpstatus")
+juiz.registermodule("httpstatus", "HTTP Status Checker", 1)

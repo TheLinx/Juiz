@@ -31,8 +31,8 @@ function tweet(twmessage, twusername, twpassword)
     twconn:settimeout(60)
 	twconn:send(twrequest)
 	twconn:close()
-    msg("TRACE", "tweeted '%s' as user '%s'", twmessage, twusername)
+    util.msg("TRACE", "tweeted '%s' as user '%s'", twmessage, twusername)
     return true
 end
 
-juiz.registermodule("tweeting", "Tweeting Functionality", 1, "http://code.google.com/p/juiz/wiki/tweeting")
+juiz.registermodule("tweeting", "Tweeting Functionality", 1)

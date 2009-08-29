@@ -3,7 +3,6 @@
 --- Made by: Linus Sjögren (thelinx@unreliablepollution.net)
 --- License: MIT
 ---------------------------------------------------------------------
-if not required then required = {} end
 
 --- Makes Juiz join a channel.
 -- @param channel The channel to join.
@@ -38,13 +37,12 @@ end
 --- Use this instead of require()
 -- @param file The file to require.
 function util.require(file)
-    if required[file] ~= nil then
+    if package.loaded[file] ~= nil then
         util.msg("TRACE", "File %s has already been required before, loading from cache.", file)
-        return required[file]
+        return package.loaded[file]
     end
     local success,val = pcall(require, file)
     if success then
-        required[file] = val
         return val
     else
         util.msg("TRACE", "require error is %s", val or "nil")

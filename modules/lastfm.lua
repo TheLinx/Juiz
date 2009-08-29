@@ -8,9 +8,10 @@
 --- License: Public Domain
 ---------------------------------------------------------------------
 juiz.depcheck({"ccmd","util"},{1,1})
+http = util.require("socket.http")
 util.require("lxp.lom")
 
-ccmd.Add("lastfm", {function (recp, sender, user)
+juiz.addccmd("lastfm", {function (recp, sender, user)
     local lastfmresponse = http.request(string.format("http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=%s&api_key=eb9a55b43823c2bc20dc1ece7ee7e9e2", user))
     local artist,song = "",""
     resp = lxp.lom.parse(lastfmresponse)
@@ -32,4 +33,4 @@ ccmd.Add("lastfm", {function (recp, sender, user)
     juiz.reply(recp, sender, string.format("%s is listening to %s - %s", user, artist, song))
 end, "<username>", "checks the latest song listened to by user."})
 
-juiz.registermodule("lastfm", "Last.FM command", 1, "http://code.google.com/p/juiz/wiki/lastfm")
+juiz.registermodule("lastfm", "Last.FM command", 1)

@@ -13,16 +13,11 @@ juiz.depcheck({"util","ccmd"}, {1,1})
 -- @return boolean true or false depending on success of loadmodule()
 function webinstall (file)
     local fcon,_,h = http.request(file)
-    local fnam
-    for _,v in pairs(h) do
-        util.msg("TRACE", "Checking for filename in '%s'", v)
-        if string.find(v, "lua") then
-            _,_,fnam = string.find(v, '([^/"]+).lua')
-            util.msg("TRACE", "Got filename: %s.lua", fnam)
-        end
-    end
-    if not fnam then
-        fnam = "tmp"
+    local fnam = file
+    while true do
+        local i = string.find(s, "/")
+        if not i then break end
+        fnam = string.sub(s, i+1)
     end
     local fopn = io.open("modules/"..fnam..".lua", "w+")
     fopn:write(fcon)
@@ -50,4 +45,4 @@ ccmd.Add("webinstall", {function (recp, sender, file, host)
     return true
 end, "<url>", "downloads and includes a Lua file. (owner only)"})
 
-juiz.registermodule("webinstall", "HTTP Module Installation", 1, "http://code.google.com/p/juiz/wiki/webinstall")
+juiz.registermodule("webinstall", "HTTP Module Installation", 1)

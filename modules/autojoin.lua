@@ -9,8 +9,8 @@ juiz.depcheck({"util"},{1})
 
 juiz.addhook("connected", function ()
     for _,channel in pairs(config.channels) do
-        join(channel)
+        juiz.join(channel)
     end
 end)
 
-juiz.registermodule("autojoin", "Auto Join", 1, "http://code.google.com/p/juiz/wiki/autojoin")
+juiz.registermodule("autojoin", "Auto Join", 1)

@@ -8,3 +8,9 @@ Some modules are licensed as public domain, enjoy!
 2) Edit that file, then run ./juiz again.
 3) You're set!
 Need more help? Use --help.
+
+-- How to load modules on startup:
+1) Open the configuration file.
+2) Add a line that says "config.modules = {}"
+3) Add the name of the modules in that table, example:
+config.modules = {"util", "ccmd", "data", "admin", "help"}

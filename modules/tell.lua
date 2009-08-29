@@ -42,6 +42,6 @@ function usercheck(sender, recp)
     juiz.removedata("telldb-"..sender)
 end
 
-print(juiz.addhook("message", usercheck))
-print(juiz.addhook("join", usercheck))
+juiz.addhook("message", usercheck)
+juiz.addhook("join", usercheck)
 juiz.registermodule("tell", "Tell Command", 1)

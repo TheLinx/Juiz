@@ -31,17 +31,18 @@ juiz.addccmd("exec", {function (recp, sender, command, host)
     loadstring(command)()
     return true
 end, "<code>", "executes raw Lua code. (owner and debug only)"})
-juiz.addccmd("debugtoggle", {function (recp, sender, command, host)
+juiz.addccmd("debug", {function (recp, sender, command, host)
     if not juiz.userisowner(sender, host) then
         juiz.reply(recp, sender, "You're not authorized to use that command.")
         return true
     end
     if DEBUG then
         DEBUG = false
+        juiz.reply(recp, sender, "Debugging mode was turned off.")
     else
         DEBUG = true
+        juiz.reply(recp, sender, "Debugging mode was turned on.")
     end
-    juiz.reply(recp, sender, "Done!")
 end, "", "toggles Juiz's debug mode. (owner only)"})
 juiz.addccmd("install", {function (recp, sender, file, host)
     if not juiz.userisowner(sender, host) then

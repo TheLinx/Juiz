@@ -1,31 +1,36 @@
 #!/usr/bin/env lua
 require("socket")
-local tcp,alive,lastsend,sendqueue,configfile = socket.tcp(),true,0,{},"config.txt"
-version,url,config,jmodule,loaded,hook,hooks,juiz,util = "Juiz IRC Bot 1.1.0","http://github.com/thelinx/Juiz",{},{},{},{},{},{},{}
+local tcp,alive,lastsend,sendqueue,configfile = socket.tcp(),true,0,{},"config"
+version,url,config,jmodule,loaded,hook,hooks,juiz,util = "Juiz IRC Bot PRE 1.2.0","http://github.com/thelinx/Juiz",{},{},{},{},{},{},{}
 print(string.format("This is the %s. (%s)", version, url))
 for _,v in pairs(arg) do
     if v == "--help" then
         print([[Command line options:
-  --config <filename> - use a different configuration file than config.txt
-  --debug - activates debugging mode.
-  --display-raw-data - activates printing of raw irc data received.
-  --dont-connect - loads modules then stops.]])
-        error()
+  -c or --config <filename>
+    Use a different configuration file than ./config
+  -d or --debug
+    Activates debugging mode.
+  -r or --display-raw-data
+    Activates printing of raw irc data received.
+  -D or --dont-connect
+    Loads modules then stops.]])
+        os.exit()
     end
-    if v == "--debug" then
+    if v == "--debug" or v == "-d" then
         DEBUG = true
         print("Debug mode activated.")
     end
-    if v == "--display-raw-data" then
+    if v == "--display-raw-data" or v == "-r" then
         DISPLAYRAWDATA = true
         print("Will print raw data received.")
     end
-    if v == "--dont-connect" then
+    if v == "--dont-connect" or v == "-D" then
         DONTCONNECT = true
         print("Not gonna connect.")
     end
-    if prevv == "--config" then
+    if prevv == "--config" or prevv == "-c" then
         configfile = v
+        CUSTOMCONFIG = v
         print(string.format("Setting configfile to %s.", configfile))
     end
     prevv = v
@@ -42,9 +47,11 @@ function util.msg(mtype, mtext, ...)
     local text = ""
     if mtype == "CHATLOG" then
         text = string.format(mtext, ...)
+    elseif mtype == "NOTIFY" then
+        text = string.format(mtext, ...)
     elseif mtype == "INSTALL" then
         text = string.format("Loaded %s", string.format(mtext, ...))
-    elseif mtype == "ERROR" or mtype == "NOTIFY" then
+    elseif mtype == "ERROR" then
         text = string.format("%s: %s", mtype, string.format(mtext, ...))
     elseif DEBUG and (mtype == "TRACE" or mtype == "DEBUG") then
         text = string.format("%s: %s", mtype, string.format(mtext, ...))
@@ -128,7 +135,7 @@ local function connect()
         util.msg("ERROR", string.format("Sending login failed: %s", serror))
         error()
     end
-    util.msg("NOTIFY", "Sent login.")
+    util.msg("TRACE", "Sent login.")
     return true
 end
 
@@ -151,11 +158,11 @@ local function processdata(pdata)
         if recp:lower() == config.nick:lower() and onick:lower() ~= config.nick:lower() then
             if param:match("[^%w]?VERSION[^%w]?") then
                 juiz.say(onick, version)
-                util.msg("NOTIFY", "Version requested from %s", onick)
+                util.msg("TRACE", "Version requested from %s", onick)
                 return true
             elseif param:match("[^%w]?PING[^%w]?") then
                 juiz.send(string.format("PONG %s", ohost))
-                util.msg("NOTIFY", "Ping requested from %s", onick)
+                util.msg("TRACE", "Ping requested from %s", onick)
                 return true
             end
         end
@@ -165,12 +172,12 @@ local function processdata(pdata)
         juiz.callhook("message", onick, recp, param, ohost)
     elseif command:lower() == "join" then
         if onick:lower() == config.nick:lower() then
-            util.msg("NOTIFY", "Joined channel %s", param)
+            util.msg("NOTIFY", "Joined channel %s.", param)
         end
         juiz.callhook("join", onick, param, ohost)
     elseif command:lower() == "part" then
         if onick:lower() == config.nick:lower() then
-            util.msg("NOTIFY", "Left channel %s", param)
+            util.msg("NOTIFY", "Left channel %s.", param)
         end
         juiz.callhook("part", onick, param, ohost)
     end
@@ -184,19 +191,6 @@ local function queue()
         elseif sendqueue[1] then return "more" end
     end
     return "done"
-end
-
-local function mainloop()
-    local rdata, rerror = tcp:receive("*l")
-    while queue() ~= "done" do end
-    if not rdata and rerror and #rerror > 0 and rerror ~= "timeout" then
-        util.msg("NOTIFY", "Lost connection to %s:%d: %s", config.server, config.port, rerror)
-        error()
-        return false
-    elseif not rdata then
-        return true
-    end
-    return processdata(rdata)
 end
 
 --- Splits a string into a table.
@@ -285,22 +279,20 @@ end
 local fopn = io.open(configfile, "r")
 if not fopn then
     local fopn = io.open(configfile, "w")
-    fopn:write("SERVER\nPORT\nNICKNAME\nOWNER PASSWORD\nTRIGGER")
+    fopn:write([[config = {}
+config.server = "SERVER"
+config.port = "PORT"
+config.nick = "NICKNAME"
+config.pass = "ADMIN PASSWORD"
+config.trigger = "TRIGGER"
+-- Add additional configuration items after this line, refer to individual module documentation for more information.]])
     fopn:close()
-    util.msg("NOTIFY", "Please edit the configuration file created in the current directory.")
+    util.msg("NOTIFY", "Please edit the configuration file created in %s.", CUSTOMCONFIG or "the current directory")
     alive = false
 else
-    local tmp = {}
-    for v in fopn:lines() do
-        table.insert(tmp, v)
-    end
-    config.server = tmp[1]
-    config.port = tmp[2]
-    config.nick = tmp[3]
-    config.pass = tmp[4]
-    config.trigger = tmp[5]
+    fopn:close()
+    dofile(configfile)
     config.admins = {}
-    config.modules = {"util","data","ccmd","admin","help"}
 end
 -- Load the selected modules
 if alive == true then
@@ -321,9 +313,14 @@ if alive == true then
     end
 end
 -- Now that we're alive and well, let's start receiving data
-repeat
-    if not mainloop() then
+while alive do
+    local rdata, rerror = tcp:receive("*l")
+    while queue() ~= "done" do end
+    if not rdata and rerror and #rerror > 0 and rerror ~= "timeout" then
+        util.msg("ERROR", "Lost connection to %s:%d: %s", config.server, config.port, rerror)
         alive = false
+    elseif rdata then
+        processdata(rdata)
     end
-until not alive
+end
 print("Shutting down...")

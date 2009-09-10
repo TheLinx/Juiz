@@ -10,7 +10,7 @@
 juiz.depcheck({"util","ccmd","data"},{1,1,2})
 
 juiz.addccmd("tell", {function (recp, sender, message)
-    if message == '' or message == nil then
+    if message == '' or message == nil or not message:find(" ") then
         juiz.reply(recp, sender, "You can't do that.")
         return true
     end

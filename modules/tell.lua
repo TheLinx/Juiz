@@ -44,4 +44,4 @@ end
 
 juiz.addhook("message", usercheck)
 juiz.addhook("join", usercheck)
-juiz.registermodule("tell", "Tell Command", 1)
+juiz.registermodule("tell", "Tell Command", 2)

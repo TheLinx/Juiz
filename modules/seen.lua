@@ -14,7 +14,7 @@ juiz.addccmd("seen", {function (recp, sender, user)
         juiz.reply(recp, sender, "You need to specify a user!")
         return true
     end
-    local seendata = juiz.getdata("seendb-"..user)
+    local seendata = juiz.getdata("seendb-"..user:lower())
     if type(seendata) == "table" then
         local seentime,seenact,seenloc = os.date("%c", seendata[1]),seendata[2],seendata[3]
         if not seenloc:find("#") then seenloc = "a private chat" end
@@ -34,7 +34,7 @@ juiz.addccmd("seen", {function (recp, sender, user)
 end, "<user>", "reports the last occasion that the bot saw the user."})
 function userseen(hook, sender, recp)
     if sender:lower() == config.nick:lower() then return end
-    return juiz.setdata("seendb-"..sender, {os.time(), hook, recp})
+    return juiz.setdata("seendb-"..sender:lower(), {os.time(), hook, recp})
 end
 
 juiz.addhook("message", function (...) userseen("m", ...) end)

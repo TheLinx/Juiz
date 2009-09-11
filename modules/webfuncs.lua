@@ -48,37 +48,39 @@ end
 --  Chat commands  --
 if juiz then
 ---------------------
-if juiz.moduleloaded("ccmd") then
-    local gcmd = {function (recp, sender, query)
+if juiz.moduleloaded("ccmd", 2) then
+    juiz.addccmd("g", {function (recp, sender, query)
         if not query then
             return juiz.reply(recp, sender, "You need to specify a query!")
         end
         local result = webfunc.google(query).responseData.results[1].unescapedUrl or "No results."
         return juiz.reply(recp, sender, result)
-    end, "<query>", "googles the query and replies with the top result."}
-    juiz.addccmd("g", gcmd)
-    juiz.addccmd("google", gcmd)
-    juiz.addccmd("search", gcmd)
+    end, "<query>", "googles the query and replies with the top result."})
+    juiz.aliasccmd("google", "g")
+    juiz.aliasccmd("search", "g")
 
-    local gccmd = {function (recp, sender, query)
+    juiz.addccmd("gc", {function (recp, sender, query)
         if not query then
             return juiz.reply(recp, sender, "You need to specify a query!")
         end
         local result = webfunc.google(query).responseData.cursor.estimatedResultCount or "none"
         return juiz.reply(recp, sender, "Number of results: %s", result)
-    end, "<query>", "googles the query and replies with the number of results."}
-    juiz.addccmd("gc", gccmd)
-    juiz.addccmd("googlecount", gccmd)
+    end, "<query>", "googles the query and replies with the number of results."})
+    juiz.aliasccmd("googlecount", "gc")
     
-    local twitterccmd = {function (recp, sender, user)
+    juiz.addccmd("tw", {function (recp, sender, user)
         if not user then
             return juiz.reply(recp, sender, "You need to specify a user!")
         end
         local result = webfunc.latesttweet(user)
-        return juiz.reply(recp, sender, "<%s> %s", user, result.text, result.created_at)
-    end, "<user>", "replies with the latest tweet by a user."}
-    juiz.addccmd("tw", twitterccmd)
-    juiz.addccmd("twitter", twitterccmd)
+        if result then
+            result = string.format("%s %s", result.user.screen_name, result.text)
+        else
+            result = "Could not fetch tweets!"
+        end
+        return juiz.say(recp, result)
+    end, "<user>", "replies with the latest tweet by a user."})
+    juiz.aliasccmd("twitter", "tw")
 end
 
 juiz.registermodule("webfuncs", "Web functions", 2)

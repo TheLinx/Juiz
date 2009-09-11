@@ -11,7 +11,7 @@ juiz.depcheck({"util","ccmd"}, {1,1})
 --- Downloads and loads a module.
 -- @param file The URI of the file to download.
 -- @return boolean true or false depending on success of loadmodule()
-function webinstall (file)
+function juiz.webinstall (file)
     local fcon,_,h = http.request(file)
     local fnam = file
     while true do
@@ -29,7 +29,7 @@ function webinstall (file)
     end
 end
 
-ccmd.Add("webinstall", {function (recp, sender, file, host)
+juiz.addccmd("webinstall", {function (recp, sender, file, host)
     if not isowner(sender, host) then
         juiz.reply(recp, sender, "You're not authorized to use that command.")
         return true
@@ -37,12 +37,13 @@ ccmd.Add("webinstall", {function (recp, sender, file, host)
     if not file then
         juiz.reply(recp, sender, "Insufficient arguments supplied!")
     end
-    if webinstall(file) then
+    if juiz.webinstall(file) then
         juiz.reply(recp, sender, "Success!")
     else
         juiz.reply(recp, sender, "Installation failed!")
     end
     return true
 end, "<url>", "downloads and includes a Lua file. (owner only)"})
+juiz.aliasccmd("winstall", "webinstall")
 
-juiz.registermodule("webinstall", "HTTP Module Installation", 1)
+juiz.registermodule("webinstall", "HTTP Module Installation", 2)

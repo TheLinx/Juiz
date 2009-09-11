@@ -18,6 +18,22 @@ function juiz.addccmd(trigger, func)
     util.msg("TRACE", "Added chat command %s", trigger)
     table.insert(ccmds, {trigger, func})
 end
+--- Adds an alias for a chat command.
+-- @param trigger The new trigger
+-- @param target The target of the alias
+function juiz.aliasccmd(trigger, target)
+    util.msg("TRACE", "Adding an alias %s for the chat command %s", trigger, target)
+    local found = "nothing"
+    for k,v in pairs(ccmds) do
+        if v[1]:lower() == target:lower() then
+            found = v[2]
+        end
+    end
+    if type(found) == "table" or type(found) == "function" then
+        return juiz.addccmd(trigger, found)
+    end
+    return false
+end
 function juiz.callccmd(trigger, ...)
     local arg = {...}
     for _,v in pairs(ccmds) do
@@ -92,4 +108,4 @@ juiz.addhook("message", function(onick, recp, param, ohost)
     end
 end)
 
-juiz.registermodule("ccmd", "Chat Command Functionality", 1)
+juiz.registermodule("ccmd", "Chat Command Functionality", 2)

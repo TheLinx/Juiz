@@ -4,7 +4,6 @@
 --- Depends on:
 ---  * Utility functions (r3)
 ---  * (External) JSON4Lua - http://json.luaforge.net/#download
----  * (External) LuaExpat - http://www.keplerproject.org/luaexpat/
 --- License: Public Domain
 ---------------------------------------------------------------------
 require("json")
@@ -36,8 +35,18 @@ function webfunc.google(query)
     return c or false
 end
 
+local function twitterujson(user, count)
+    local c = http.request("http://twitter.com/statuses/user_timeline/"..user..".json?count="..(count or 1))
+    return json.decode(c) or false
+end
+function webfunc.latesttweet(user)
+    local c = twitterujson(user)
+    return c[1] or false
+end
+
 ---------------------
 --  Chat commands  --
+if juiz then
 ---------------------
 if juiz.moduleloaded("ccmd") then
     local gcmd = {function (recp, sender, query)
@@ -60,6 +69,17 @@ if juiz.moduleloaded("ccmd") then
     end, "<query>", "googles the query and replies with the number of results."}
     juiz.addccmd("gc", gccmd)
     juiz.addccmd("googlecount", gccmd)
+    
+    local twitterccmd = {function (recp, sender, user)
+        if not user then
+            return juiz.reply(recp, sender, "You need to specify a user!")
+        end
+        local result = webfunc.latesttweet(user)
+        return juiz.reply(recp, sender, "<%s> %s", user, result.text, result.created_at)
+    end, "<user>", "replies with the latest tweet by a user."}
+    juiz.addccmd("tw", twitterccmd)
+    juiz.addccmd("twitter", twitterccmd)
 end
 
 juiz.registermodule("webfuncs", "Web functions", 2)
+end

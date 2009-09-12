@@ -60,13 +60,18 @@ end
 function webfunc.latestsong(user)
     local c,t = lastfmrecjson(user),{}
     if not c then return false end
+    if not c.recenttracks then return false end
     t.artist = c.recenttracks.track[1].artist["#text"]
     t.name = c.recenttracks.track[1].name
     t.song = t.name
     t.album = c.recenttracks.track[1].album["#text"]
     t.date = c.recenttracks.track[1].date.uts
     t.user = c.recenttracks["@attr"].user
-    return t,c.recenttracks.track[1]["@attr"].nowplaying or false
+    local listening = false
+    if c.recenttracks.track[1]["@attr"] then
+        listening = c.recenttracks.track[1]["@attr"].nowplaying
+    end
+    return t,listening
 end
 
 ---------------------
@@ -120,11 +125,11 @@ if juiz.moduleloaded("ccmd", 2) then
         if result then
             result = string.format("%s%s - %s", listening, result.artist, result.song)
         else
-            result = "Could not fetch latest song!"
+            result = "Could not fetch recent tracks!"
         end
         return juiz.reply(recp, sender, result)
     end, "<user>", "replies with the latest listened song by the user on LastFM"})
 end
 
-juiz.registermodule("webfuncs", "Web functions", 2)
+juiz.registermodule("webfuncs", "Web functions", 3)
 end

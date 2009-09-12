@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 require("socket")
 local tcp,alive,lastsend,sendqueue,configfile = socket.tcp(),true,0,{},"config"
-version,url,config,jmodule,loaded,hook,hooks,juiz,util = "Juiz IRC Bot PRE 1.2.0","http://github.com/thelinx/Juiz",{},{},{},{},{},{},{}
+version,url,config,jmodule,loaded,hook,hooks,juiz,util = "Juiz IRC Bot 1.2.0","http://github.com/thelinx/Juiz",{},{},{},{},{},{},{}
 print(string.format("This is the %s. (%s)", version, url))
 for _,v in pairs(arg) do
     if v == "--help" then

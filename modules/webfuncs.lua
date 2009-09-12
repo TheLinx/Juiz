@@ -9,7 +9,6 @@
 require("json")
 http = require("socket.http")
 url = require("socket.url")
-
 webfunc = {}
 
 local function printr(it, steps)
@@ -51,7 +50,7 @@ function webfunc.latesttweet(user)
 end
 
 local function lastfmrecjson(user)
-    local c = http.request(string.format("http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=%s&api_key=eb9a55b43823c2bc20dc1ece7ee7e9e2&format=json", user))
+    local c = http.request(string.format("http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=%s&api_key=eb9a55b43823c2bc20dc1ece7ee7e9e2&format=json", url.escape(user)))
     return json.decode(c) or false
 end
 --- Retrieves the latest listened track by a specified user.
@@ -72,6 +71,18 @@ function webfunc.latestsong(user)
         listening = c.recenttracks.track[1]["@attr"].nowplaying
     end
     return t,listening
+end
+
+local function googlenumsearch(query)
+    local c = http.request(string.format("http://www.google.com/search?num=1&q=%s", url.escape(query)))
+    return c or false
+end
+
+function webfunc.googlecalc(query)
+    local c = googlenumsearch(query)
+    if not c then return false end
+    local _,_,_,r = c:find("<td nowrap ><h2 class=r style=(.+)><b>(.+)</b></h2><tr><td>")
+    return r or false
 end
 
 ---------------------
@@ -129,7 +140,15 @@ if juiz.moduleloaded("ccmd", 2) then
         end
         return juiz.reply(recp, sender, result)
     end, "<user>", "replies with the latest listened song by the user on LastFM"})
+    
+    juiz.addccmd("c", {function (recp, sender, query)
+        if not query then
+            return juiz.reply(recp, sender, "You need to specify a query!")
+        end
+        local result = webfunc.googlecalc(query) or "No result."
+        return juiz.reply(recp, sender, result)
+    end, "<query>", "uses google's calculator to calculate the query."})
 end
 
-juiz.registermodule("webfuncs", "Web functions", 3)
+juiz.registermodule("webfuncs", "Web functions", 4)
 end

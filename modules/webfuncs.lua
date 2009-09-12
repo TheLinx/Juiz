@@ -95,7 +95,7 @@ if juiz.moduleloaded("ccmd", 2) then
     
     juiz.addccmd("tw", {function (recp, sender, user)
         if not user then
-            return juiz.reply(recp, sender, "You need to specify a user!")
+            user = sender
         end
         local result = webfunc.latesttweet(user)
         if result then

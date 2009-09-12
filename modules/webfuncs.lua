@@ -30,15 +30,21 @@ local function googlejson(query)
     local c = http.request("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&safe=off&q="..url.escape(query))
     return json.decode(c) or false
 end
+--- Googles a query and returns the JSON table.
+-- @param query The search query.
+-- @param table The JSON table (originating from responseData.
 function webfunc.google(query)
     local c = googlejson(query)
-    return c or false
+    return c.responseData or false
 end
 
 local function twitterujson(user, count)
     local c = http.request("http://twitter.com/statuses/user_timeline/"..user..".json?count="..(count or 1))
     return json.decode(c) or false
 end
+--- Retrieves the latest tweet from the specified user.
+-- @param user The user.
+-- @param table A JSON table containing the tweet and user info.
 function webfunc.latesttweet(user)
     local c = twitterujson(user)
     return c[1] or false
@@ -53,7 +59,7 @@ if juiz.moduleloaded("ccmd", 2) then
         if not query then
             return juiz.reply(recp, sender, "You need to specify a query!")
         end
-        local result = webfunc.google(query).responseData.results[1].unescapedUrl or "No results."
+        local result = webfunc.google(query).results[1].unescapedUrl or "No results."
         return juiz.reply(recp, sender, result)
     end, "<query>", "googles the query and replies with the top result."})
     juiz.aliasccmd("google", "g")
@@ -63,7 +69,7 @@ if juiz.moduleloaded("ccmd", 2) then
         if not query then
             return juiz.reply(recp, sender, "You need to specify a query!")
         end
-        local result = webfunc.google(query).responseData.cursor.estimatedResultCount or "none"
+        local result = webfunc.google(query).cursor.estimatedResultCount or "none"
         return juiz.reply(recp, sender, "Number of results: %s", result)
     end, "<query>", "googles the query and replies with the number of results."})
     juiz.aliasccmd("googlecount", "gc")

@@ -66,7 +66,7 @@ function webfunc.latestsong(user)
     t.album = c.recenttracks.track[1].album["#text"]
     t.date = c.recenttracks.track[1].date.uts
     t.user = c.recenttracks["@attr"].user
-    return t
+    return t,c.recenttracks.track[1]["@attr"].nowplaying or false
 end
 
 ---------------------
@@ -111,9 +111,14 @@ if juiz.moduleloaded("ccmd", 2) then
         if not user then
             user = sender
         end
-        local result = webfunc.latestsong(user)
+        local result,listening = webfunc.latestsong(user)
+        if listening then
+            listening = "Currently listening to "
+        else
+            listening = "Last listened track was "
+        end
         if result then
-            result = string.format("%s - %s", result.artist, result.song)
+            result = string.format("%s%s - %s", listening, result.artist, result.song)
         else
             result = "Could not fetch latest song!"
         end

@@ -32,7 +32,7 @@ local function googlejson(query)
 end
 --- Googles a query and returns the JSON table.
 -- @param query The search query.
--- @param table The JSON table (originating from responseData.
+-- @return table The JSON table (originating from responseData.
 function webfunc.google(query)
     local c = googlejson(query)
     return c.responseData or false
@@ -44,10 +44,29 @@ local function twitterujson(user, count)
 end
 --- Retrieves the latest tweet from the specified user.
 -- @param user The user.
--- @param table A JSON table containing the tweet and user info.
+-- @return table A JSON table containing the tweet and user info.
 function webfunc.latesttweet(user)
     local c = twitterujson(user)
     return c[1] or false
+end
+
+local function lastfmrecjson(user)
+    local c = http.request(string.format("http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=%s&api_key=eb9a55b43823c2bc20dc1ece7ee7e9e2&format=json", user))
+    return json.decode(c) or false
+end
+--- Retrieves the latest listened track by a specified user.
+-- @param user The user.
+-- @return table Song information and username.
+function webfunc.latestsong(user)
+    local c,t = lastfmrecjson(user),{}
+    if not c then return false end
+    t.artist = c.recenttracks.track[1].artist["#text"]
+    t.name = c.recenttracks.track[1].name
+    t.song = t.name
+    t.album = c.recenttracks.track[1].album["#text"]
+    t.date = c.recenttracks.track[1].date.uts
+    t.user = c.recenttracks["@attr"].user
+    return t
 end
 
 ---------------------
@@ -87,6 +106,19 @@ if juiz.moduleloaded("ccmd", 2) then
         return juiz.say(recp, result)
     end, "<user>", "replies with the latest tweet by a user."})
     juiz.aliasccmd("twitter", "tw")
+    
+    juiz.addccmd("lastfm", {function (recp, sender, user)
+        if not user then
+            user = sender
+        end
+        local result = webfunc.latestsong(user)
+        if result then
+            result = string.format("%s - %s", result.artist, result.song)
+        else
+            result = "Could not fetch latest song!"
+        end
+        return juiz.reply(recp, sender, result)
+    end, "<user>", "replies with the latest listened song by the user on LastFM"})
 end
 
 juiz.registermodule("webfuncs", "Web functions", 2)

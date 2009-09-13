@@ -38,7 +38,7 @@ function webfunc.google(query)
 end
 
 local function twitterujson(user, count)
-    local c = http.request("http://twitter.com/statuses/user_timeline/"..user..".json?count="..(count or 1))
+    local c = http.request("http://twitter.com/statuses/user_timeline/"..url.escape(user)..".json?count="..(count or 1))
     return json.decode(c) or false
 end
 --- Retrieves the latest tweet from the specified user.
@@ -78,6 +78,9 @@ local function googlenumsearch(query)
     return c or false
 end
 
+--- Calculates the query with the Google Calculator.
+-- @param query The equation.
+-- @return string The result.
 function webfunc.googlecalc(query)
     local c = googlenumsearch(query)
     if not c then return false end
@@ -85,31 +88,49 @@ function webfunc.googlecalc(query)
     return r or false
 end
 
+--[[local function wikipediajsonsearch(query)
+    local c = http.request(string.format("http://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=%s&format=json", url.escape(query)))
+    return json.decode(c) or false
+end
+
+local function wikipediajsonrevs(query)
+    local c = http.request(string.format("http://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=%s&rvprop=content&format=json", url.escape(query)))
+    return json.decode(c) or false
+end
+
+function webfunc.wikipediasnip(query)
+    local c = wikipediajsonsearch(query)
+    if not c then return false end
+    local con = wikipediajsonrevs(c.query.search[1].title)
+    printr(con)
+end
+--]]
+
 ---------------------
 --  Chat commands  --
 if juiz then
 ---------------------
 if juiz.moduleloaded("ccmd", 2) then
-    juiz.addccmd("g", {function (recp, sender, query)
+    juiz.addccmd("google", {function (recp, sender, query)
         if not query then
             return juiz.reply(recp, sender, "You need to specify a query!")
         end
         local result = webfunc.google(query).results[1].unescapedUrl or "No results."
         return juiz.reply(recp, sender, result)
     end, "<query>", "googles the query and replies with the top result."})
-    juiz.aliasccmd("google", "g")
-    juiz.aliasccmd("search", "g")
+    juiz.aliasccmd("g", "google")
+    juiz.aliasccmd("search", "google")
 
-    juiz.addccmd("gc", {function (recp, sender, query)
+    juiz.addccmd("googlecount", {function (recp, sender, query)
         if not query then
             return juiz.reply(recp, sender, "You need to specify a query!")
         end
         local result = webfunc.google(query).cursor.estimatedResultCount or "none"
         return juiz.reply(recp, sender, "Number of results: %s", result)
     end, "<query>", "googles the query and replies with the number of results."})
-    juiz.aliasccmd("googlecount", "gc")
+    juiz.aliasccmd("gc", "googlecount")
     
-    juiz.addccmd("tw", {function (recp, sender, user)
+    juiz.addccmd("twitter", {function (recp, sender, user)
         if not user then
             user = sender
         end
@@ -121,7 +142,7 @@ if juiz.moduleloaded("ccmd", 2) then
         end
         return juiz.say(recp, result)
     end, "<user>", "replies with the latest tweet by a user."})
-    juiz.aliasccmd("twitter", "tw")
+    juiz.aliasccmd("tw", "twitter")
     
     juiz.addccmd("lastfm", {function (recp, sender, user)
         if not user then
@@ -141,13 +162,27 @@ if juiz.moduleloaded("ccmd", 2) then
         return juiz.reply(recp, sender, result)
     end, "<user>", "replies with the latest listened song by the user on LastFM"})
     
-    juiz.addccmd("c", {function (recp, sender, query)
+    juiz.addccmd("gcalc", {function (recp, sender, query)
         if not query then
             return juiz.reply(recp, sender, "You need to specify a query!")
         end
         local result = webfunc.googlecalc(query) or "No result."
         return juiz.reply(recp, sender, result)
     end, "<query>", "uses google's calculator to calculate the query."})
+    
+    --[[
+    juiz.addccmd("wikipedia", {function (recp, sender, query)
+        if not query then
+            return juiz.reply(recp, sender, "You need to specify a query!")
+        end
+        local result,title = webfunc.wikipediasnip(query)
+        if not result then
+            return juiz.reply(recp, sender, "No result found.")
+        end
+        return juiz.reply(recp, sender, "\"%s\" - http://en.wikipedia.org/wiki/%s", result, url.escape(title))
+    end, "<query>", "looks up the query on wikipedia and replies with a snippet."})
+    juiz.aliasccmd("wik", "wikipedia")
+    --]]
 end
 
 juiz.registermodule("webfuncs", "Web functions", 4)

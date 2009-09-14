@@ -155,6 +155,7 @@ local function processdata(pdata)
         juiz.send(string.format("PONG %s", param))
         util.msg("TRACE", "Ping requested from server")
     elseif command:lower() == "privmsg" then
+        if not param then return end
         if recp:lower() == config.nick:lower() and onick:lower() ~= config.nick:lower() then
             if param:match("[^%w]?VERSION[^%w]?") then
                 juiz.say(onick, version)

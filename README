@@ -16,4 +16,4 @@ Need more help? Use --help.
 config.modules = {"util", "ccmd", "data", "admin", "help"}
 
 -- How to build a Juiz executable:
-g++ juiz.cpp /usr/lib/liblua5.1.so  /usr/lib/liblua5.1-socket.so /usr/lib/liblua5.1-mime.so -llua5.1 -llua5.1-socket -llua5.1-mime -o ./juiz
+make

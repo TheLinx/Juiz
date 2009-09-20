@@ -76,7 +76,7 @@ juiz.addhook("message", function(onick, recp, param, ohost)
             botcmd = param
             util.msg("TRACE", "Command %s triggered by %s", botcmd, onick)
         end
-        if config.ccmd.replynotfound == false and not juiz.callccmd(botcmd, onick, onick, args or nil, ohost) then
+        if not juiz.callccmd(botcmd, onick, onick, args or nil, ohost) and not config.ccmd.replynotfound == false then
             juiz.say(onick, "Sorry, I don't have the command \"%s\".", botcmd)
         end
     else
@@ -101,7 +101,7 @@ juiz.addhook("message", function(onick, recp, param, ohost)
                 botcmd = param
                 util.msg("TRACE", "Command %s triggered by %s", botcmd, onick)
             end
-            if config.ccmd.replynotfound == false and not juiz.callccmd(botcmd, recp, onick, args or nil, ohost) and mentioned then
+            if not juiz.callccmd(botcmd, recp, onick, args or nil, ohost) and not config.ccmd.replynotfound == false and mentioned then
             -- Only apologize if mentioned
                 juiz.reply(recp, onick, "Sorry, I don't have the command \"%s\".", botcmd)
             end

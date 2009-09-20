@@ -31,7 +31,7 @@ for _,v in pairs(arg) do
     if prevv == "--config" or prevv == "-c" then
         configfile = v
         CUSTOMCONFIG = v
-        print(string.format("Setting configfile to %s.", configfile))
+        print(string.format("Setting configfile as %s.", configfile))
     end
     prevv = v
 end

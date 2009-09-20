@@ -14,6 +14,3 @@ Need more help? Use --help.
 2) Add a line that says "config.modules = {}"
 3) Add the name of the modules in that table, example:
 config.modules = {"util", "ccmd", "data", "admin", "help"}
-
--- How to build a Juiz executable:
-make

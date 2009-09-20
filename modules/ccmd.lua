@@ -4,6 +4,7 @@
 --- License: MIT
 ---------------------------------------------------------------------
 if not ccmds then ccmds = {} end
+if not config.ccmd then config.ccmd = {} end
 
 --- Adds a chat command.
 -- @param trigger The chat trigger
@@ -75,7 +76,7 @@ juiz.addhook("message", function(onick, recp, param, ohost)
             botcmd = param
             util.msg("TRACE", "Command %s triggered by %s", botcmd, onick)
         end
-        if not juiz.callccmd(botcmd, onick, onick, args or nil, ohost) then
+        if config.ccmd.replynotfound == false and not juiz.callccmd(botcmd, onick, onick, args or nil, ohost) then
             juiz.say(onick, "Sorry, I don't have the command \"%s\".", botcmd)
         end
     else
@@ -100,7 +101,7 @@ juiz.addhook("message", function(onick, recp, param, ohost)
                 botcmd = param
                 util.msg("TRACE", "Command %s triggered by %s", botcmd, onick)
             end
-            if not juiz.callccmd(botcmd, recp, onick, args or nil, ohost) and mentioned then
+            if config.ccmd.replynotfound == false and not juiz.callccmd(botcmd, recp, onick, args or nil, ohost) and mentioned then
             -- Only apologize if mentioned
                 juiz.reply(recp, onick, "Sorry, I don't have the command \"%s\".", botcmd)
             end

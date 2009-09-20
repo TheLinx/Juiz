@@ -8,6 +8,7 @@
 --- License: MIT
 ---------------------------------------------------------------------
 juiz.depcheck({"util","ccmd","data"},{1,1,3})
+if not config.tell then config.tell = {} end
 
 juiz.addccmd("tell", {function (recp, sender, message)
     if message == '' or message == nil or not message:find(" ") then
@@ -20,8 +21,7 @@ juiz.addccmd("tell", {function (recp, sender, message)
     end
     util.msg("TRACE", "%s left a message to %s: %s", sender, messageto, messagetext)
     juiz.reply(recp, sender, "Okay, I'll tell %s that when he/she is back.", messageto)
-    juiz.adddata("telldb-"..messageto:lower(), {sender, messagetext})
-    return true
+    return juiz.adddata("telldb-"..messageto:lower(), {sender, messagetext})
 end, "<user> <message>", "takes a message for another user, then tells them when they come back."})
 function usercheck(sender, recp)
     if sender:lower() == config.nick:lower() then return end
@@ -31,10 +31,14 @@ function usercheck(sender, recp)
     else
         for _,v in pairs(telldb) do
             local messagefrom,messagetext = v[1],v[2]
-            juiz.reply(recp, sender, "%s left this message to you: '%s'", messagefrom, tostring(messagetext))
+            if config.tell.messagespm == true then
+                juiz.say(sender, "%s left this message to you: '%s'", messagefrom, tostring(messagetext))
+            else
+                juiz.reply(recp, sender, "%s left this message to you: '%s'", messagefrom, tostring(messagetext))
+            end
         end
     end
-    juiz.removedata("telldb-"..sender:lower())
+    return juiz.removedata("telldb-"..sender:lower())
 end
 
 juiz.addhook("message", usercheck)

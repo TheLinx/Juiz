@@ -297,7 +297,7 @@ else
     config.admins = {}
 end
 -- Load the selected modules
-if alive == true then
+if alive == true and config.modules then
     for _,file in pairs(config.modules) do
         file = tostring(file)
         juiz.loadmodule(file)

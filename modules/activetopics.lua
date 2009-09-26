@@ -8,11 +8,14 @@
 
 juiz.depcheck({"ccmd", "util"}, {1, 1})
 
-local request = [[
-GET /forum/search.php?search_id=active_topics HTTP/1.0
-Host: love2d.org
+if not config.forumpath or not config.forumhost then
+	error("To use activetopics you need to specify\nboth config.forumpath and config.forumhost")
+end
+local request = string.format([[
+GET %s/search.php?search_id=active_topics HTTP/1.0
+Host: %s
 
-]]
+]], config.forumpath, config.forumhost)
 local filter = [[<a href="./viewtopic.php%?f=[0-9]&amp;t=([0-9]+).-" class="topictitle">(.-)</a>.-by <a .->.-</a>.-by <a .->(.-)</a>.-<br />on (.-)<br />]]
 
 

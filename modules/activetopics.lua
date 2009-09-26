@@ -24,12 +24,16 @@ juiz.addccmd("activetopics", {function(recp, sender, message, host)
 	sock:send(request)
 	local text = sock:receive("*a")
 	local counter = 0
-	for url, title, poster, date in text:gmatch(filter) do
+	for id, title, poster, date in text:gmatch(filter) do
 		counter = counter + 1
 		if counter > tnum then break end
-		juiz.say(target, socket.url.unescape("Topic \"" .. title .. "\", last post on " .. date .. " by " .. poster):gsub("&amp;", "&"):gsub("%%", "%%%%"))
+		juiz.say(target, socket.url.unescape("Topic #" .. id .. " \"" .. title .. "\", last post on " .. date .. " by " .. poster):gsub("&amp;", "&"):gsub("%%", "%%%%"))
 	end
 	return true
 end, "[number of messages]", "fetches a list of active topics from the forums."})
+
+juiz.addccmd("topiclink", {function(recp, sender, message, host)
+	juiz.reply(recp, sender, "http://www.love2d.org/forum/viewtopic.php?t=" .. tonumber(message) .. "&view=unread#unread")
+end, "<topic id>", "returns a link to a topic id, as retrieved with activetopics."})
 
 juiz.registermodule("activetopics", "Active Topics list from forums", 1)

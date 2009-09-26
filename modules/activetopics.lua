@@ -6,7 +6,7 @@
 --- License: MIT
 ---------------------------------------------------------------------
 
-juiz.depcheck({"ccmd"}, {1})
+juiz.depcheck({"ccmd", "util"}, {1, 1})
 
 local request = [[
 GET /forum/search.php?search_id=active_topics HTTP/1.0

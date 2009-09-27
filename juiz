@@ -32,7 +32,7 @@ for _,v in pairs(arg) do
     if prevv == "--config" or prevv == "-c" then
         configfile = v
         CUSTOMCONFIG = v
-        print(string.format("Setting configfile to %s.", configfile))
+        print(string.format("Setting configfile as %s.", configfile))
     end
     prevv = v
 end
@@ -115,7 +115,7 @@ function juiz.callhook(trigger, ...)
         if v[1] == trigger then
             local co = coroutine.create(function(a, b, c, d, e, f, g) return pcall(v[2], a or nil, b or nil, c or nil, d or nil, e or nil, f or nil, g or nil) end)
             local _,cret,cerr = coroutine.resume(co, ...)
-            util.msg("TRACE", "hook to '%s' returned %s, err = %s", trigger, tostring(cret), cerr or "nil")
+            util.msg("TRACE", "hook to '%s' returned %s, err = %s", trigger, tostring(cret), tostring(cerr) or "nil")
         end
     end
 end
@@ -298,7 +298,7 @@ else
     config.admins = {}
 end
 -- Load the selected modules
-if alive == true then
+if alive == true and config.modules then
     for _,file in pairs(config.modules) do
         file = tostring(file)
         juiz.loadmodule(file)

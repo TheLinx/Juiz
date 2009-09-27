@@ -1,4 +1,5 @@
 #!/usr/bin/env lua
+pcall(function () require("luarocks.require") end)
 require("socket")
 local tcp,alive,lastsend,sendqueue,configfile = socket.tcp(),true,0,{},"config"
 version,url,config,jmodule,loaded,hook,hooks,juiz,util = "Juiz IRC Bot 1.2.0","http://github.com/thelinx/Juiz",{},{},{},{},{},{},{}

@@ -1,11 +1,12 @@
 ---------------------------------------------------------------------
---- Default Admin Functions for Juiz
+--- phpBB active topics lister
 --- Made by: Bart Bes
 --- Depends on:
----  * Chat command functionality (any version)
+---  * Chat command functionality
+---  * Utility functions
 --- License: MIT
 ---------------------------------------------------------------------
-
+if not config.actp then config.actp = {} end
 juiz.depcheck({"ccmd", "util"}, {1, 1})
 
 if not config.forumpath or not config.forumhost then
@@ -15,7 +16,7 @@ local request = string.format([[
 GET %s/search.php?search_id=active_topics HTTP/1.0
 Host: %s
 
-]], config.forumpath, config.forumhost)
+]], config.actp.path, config.actp.host)
 local filter = [[<a href="./viewtopic.php%?f=[0-9]&amp;t=([0-9]+).-" class="topictitle">(.-)</a>.-by <a .->.-</a>.-by <a .->(.-)</a>.-<br />on (.-)<br />]]
 
 
@@ -23,7 +24,7 @@ juiz.addccmd("activetopics", {function(recp, sender, message, host)
 	local target = recp:sub(1, 1) == '#' and recp or sender
 	local tnum = tonumber(message) or 3
 	local sock = socket.tcp()
-	sock:connect("love2d.org", 80)
+	sock:connect(config.actp.host, 80)
 	sock:send(request)
 	local text = sock:receive("*a")
 	local counter = 0

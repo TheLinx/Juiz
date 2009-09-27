@@ -9,8 +9,8 @@
 if not config.actp then config.actp = {} end
 juiz.depcheck({"ccmd", "util"}, {1, 1})
 
-if not config.forumpath or not config.forumhost then
-	error("To use activetopics you need to specify\nboth config.forumpath and config.forumhost")
+if not config.actp.path or not config.actp.host then
+	error("To use activetopics you need to specify\nboth config.actp.path and config.actp.host")
 end
 local request = string.format([[
 GET %s/search.php?search_id=active_topics HTTP/1.0

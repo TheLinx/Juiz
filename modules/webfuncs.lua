@@ -135,8 +135,9 @@ if juiz.moduleloaded("ccmd", 2) then
             user = sender
         end
         local result = webfunc.latesttweet(user)
+        result.text = result.text:gsub("\n", " ")
         if result then
-            result = string.format("%s %s", result.user.screen_name, result.text)
+            result = string.format("<%s> %s", result.user.screen_name, result.text)
         else
             result = "Could not fetch tweets!"
         end

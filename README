@@ -4,13 +4,23 @@ Made by Team Unreliable Pollution: http://www.unreliablepollution.net/
 Some modules are licensed as public domain, enjoy!
 
 -- How to install:
-1) Run ./juiz - this will generate a configuration file called config.txt.
+1) Run ./juiz - this will generate a configuration file called config.
 2) Edit that file, then run ./juiz again.
 3) You're set!
-Need more help? Use --help.
 
 -- How to load modules on startup:
 1) Open the configuration file.
 2) Add a line that says "config.modules = {}"
 3) Add the name of the modules in that table, example:
 config.modules = {"util", "ccmd", "data", "admin", "help"}
+
+-- How to join channels on startup:
+1) Open the configuration file.
+2) Make sure the module 'autojoin' is being loaded, example:
+config.modules = {"util", "ccmd", "data", "admin", "help", "autojoin"}
+3) Add a table containing channels you wish to join, example:
+config.channels = {"juiz", "unreliablepollution"}
+
+
+
+Need more help? Use --help.

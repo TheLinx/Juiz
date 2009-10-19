@@ -5,6 +5,7 @@
 ---  * Chat command functionality
 ---  * Utility functions
 --- License: Public Domain
+--- please god work!
 ---------------------------------------------------------------------
 juiz.depcheck({"util","ccmd"}, {1,1})
 
@@ -14,23 +15,24 @@ juiz.addccmd("update", {function (recp, sender, _, host)
     end
     local f = assert(io.popen("git pull"))
     local changed = ""
-    for line = f:read("*l") do
+    while true do
+        local line = f:read("*l")
+        if not line then break end
         util.msg("TRACE", "Git line: %s", line)
         if line == "Already up-to-date." then
             return juiz.reply(recp, sender, s)
         end
-        if line:find(".lua") then
-            local s = line:sub(2, line:find(" "))
-            if s:len() > 3 then
-                util.msg("NOTIFY", "Reloading %s", s)
-            end
+        if line:find("%.lua") then
+            local s = line:sub(line:find("modules/")+8, line:find("%.lua")-1)
+            util.msg("NOTIFY", "Reloading %s", s)
+            juiz.loadmodule(s)
         end
         if line:find("files changed") then
-            changed = line:sub(2, line:find(","))
+            changed = line:sub(2, line:find(",")-1)
         end
     end
     f:close()
-    return 
+    return juiz.reply(recp, sender, "Updated! %s", changed)
 end, "", "pulls the latest version from the git repository"})
 
 juiz.registermodule("update", "Git puller", 2)

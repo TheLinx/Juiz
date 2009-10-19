@@ -26,7 +26,9 @@ function cmd_help(recp, sender, command)
         else
             util.msg("TRACE", "Have a result, type is %s", type(found[2]))
             if type(found[2]) == "table" then
-                juiz.say(recp, "%s %s - %s", found[1], found[2][2], found[2][3])
+                local args = ""
+                if found[2][2]:len() > 0 then args = " "..found[2][2] end
+                juiz.say(recp, "%s%s - %s", found[1], args, found[2][3])
                 return true
             else
                 juiz.say(recp, "Sorry, no help is available.")

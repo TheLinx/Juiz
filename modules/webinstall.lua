@@ -20,7 +20,7 @@ function juiz.webinstall(file)
         if not i then break end
         fnam = string.sub(s, i+1)
     end
-    local fopn = assert(io.open("modules/"..fnam..".lua", "w+"))
+    local fopn = assert(io.open("modules/"..fnam..".lua", "w"))
     fopn:write(fcon)
     fopn:close()
     return juiz.loadmodule(fnam)

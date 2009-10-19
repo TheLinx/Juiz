@@ -5,7 +5,6 @@
 ---  * Chat command functionality
 ---  * Utility functions
 --- License: Public Domain
---- hum hum
 ---------------------------------------------------------------------
 juiz.depcheck({"util","ccmd"}, {1,1})
 

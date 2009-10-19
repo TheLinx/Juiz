@@ -14,7 +14,6 @@ juiz.addccmd("update", {function (recp, sender, _, host)
         return juiz.reply(recp, sender, "You're not authorized to use that command.")
     end
     local f = assert(io.popen("git pull"))
-    f:close()
     local changed = ""
     for line = f:read("*l") do
         util.msg("TRACE", "Git line: %s", line)
@@ -31,6 +30,7 @@ juiz.addccmd("update", {function (recp, sender, _, host)
             changed = line:sub(2, line:find(","))
         end
     end
+    f:close()
     return 
 end, "", "pulls the latest version from the git repository"})
 

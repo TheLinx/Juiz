@@ -17,7 +17,7 @@ juiz.addccmd("gender", {function (recp, sender, message)
         return juiz.reply(recp, sender, "You can't do that.")
     end
     theuser = sender
-    thegender = string.sub(message, message:find(" ")+1)
+    thegender = message
     if theuser == config.nick:lower() or theuser == '' or thegender == '' then
         return juiz.reply(recp, sender, "You can't do that.")
     end

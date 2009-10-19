@@ -24,7 +24,9 @@ juiz.addccmd("update", {function (recp, sender, _, host)
         if line:find("%.lua") then
             local s = line:sub(line:find("modules/")+8, line:find("%.lua")-1)
             util.msg("NOTIFY", "Reloading %s", s)
-            juiz.loadmodule(s)
+            if juiz.moduleloaded(s) then
+                juiz.loadmodule(s)
+            end
         end
         if line:find("files changed") then
             changed = line:sub(2, line:find(",")-1)

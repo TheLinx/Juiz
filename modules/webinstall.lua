@@ -30,7 +30,7 @@ function juiz.webinstall (file)
 end
 
 juiz.addccmd("webinstall", {function (recp, sender, file, host)
-    if not isowner(sender, host) then
+    if not juiz.isowner(sender, host) then
         juiz.reply(recp, sender, "You're not authorized to use that command.")
         return true
     end

@@ -13,7 +13,7 @@ gender_data = {}
 juiz.depcheck({"util", "data"},{1, 3})
 
 juiz.addccmd("gender", {function (recp, sender, message)
-    if message == '' or message == nil or not message:find(" ") then
+    if message == nil then
         return juiz.reply(recp, sender, "You can't do that.")
     end
     theuser = sender

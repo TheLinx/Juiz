@@ -14,15 +14,14 @@ juiz.addccmd("update", {function (recp, sender, _, host)
         return juiz.reply(recp, sender, "You're not authorized to use that command.")
     end
     local f = assert(io.popen("git pull"))
-    local s = assert(f:read("*l"))
     f:close()
-    if s == "Already up-to-date." then
-        return juiz.reply(recp, sender, s)
-    end
     local changed = ""
     for line = f:read("*l") do
         util.msg("TRACE", "Git line: %s", line)
-        if line:find("lua") then
+        if line == "Already up-to-date." then
+            return juiz.reply(recp, sender, s)
+        end
+        if line:find(".lua") then
             local s = line:sub(2, line:find(" "))
             if s:len() > 3 then
                 util.msg("NOTIFY", "Reloading %s", s)

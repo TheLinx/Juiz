@@ -15,7 +15,23 @@ juiz.addccmd("update", {function (recp, sender, _, host)
     local f = assert(io.popen("git pull"))
     local s = assert(f:read("*l"))
     f:close()
-    return juiz.reply(recp, sender, s)
+    if s == "Already up-to-date." then
+        return juiz.reply(recp, sender, s)
+    end
+    local changed = ""
+    for line = f:read("*l") do
+        util.msg("TRACE", "Git line: %s", line)
+        if line:find("lua") then
+            local s = line:sub(2, line:find(" "))
+            if s:len() > 3 then
+                util.msg("NOTIFY", "Reloading %s", s)
+            end
+        end
+        if line:find("files changed") then
+            changed = line:sub(2, line:find(","))
+        end
+    end
+    return 
 end, "", "pulls the latest version from the git repository"})
 
-juiz.registermodule("update", "Git puller", 1)
+juiz.registermodule("update", "Git puller", 2)

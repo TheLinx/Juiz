@@ -19,7 +19,7 @@ juiz.addccmd("update", {function (recp, sender, _, host)
         if not line then break end
         util.msg("TRACE", "Git line: %s", line)
         if line == "Already up-to-date." then
-            return juiz.reply(recp, sender, s)
+            return juiz.reply(recp, sender, line)
         end
         if line:find("%.lua") then
             local s = line:sub(line:find("modules/")+8, line:find("%.lua")-1)

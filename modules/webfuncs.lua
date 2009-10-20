@@ -173,15 +173,13 @@ if juiz.moduleloaded("ccmd", 2) then
     end, "<query>", "uses google's calculator to calculate the query."})
     
     juiz.addccmd("steamstatus", {function (recp, sender, user)
-        if not user then
-            return juiz.reply(recp, sender, "You need to specify a query!")
-        end
+        local user = user or sender
         local result = webfunc.steamcommunity(user)
         if not result then
             return juiz.reply(recp, sender, "Could not fetch data!")
         end
         return juiz.reply(recp, sender, "%s - %s", result.steamID, result.stateMessage)
-    end, "<user>", "looks up the current status of a steam community user."})
+    end, "[user]", "looks up the current status of a steam community user."})
     
     --[[
     juiz.addccmd("wikipedia", {function (recp, sender, query)

@@ -9,7 +9,7 @@
 local json = require("json")
 local http = require("socket.http")
 local url = require("socket.url")
-juiz.depcheck({"util"}, {3})
+if juiz then juiz.depcheck({"util"}, {3}) end
 webfunc = {}
 
 local function googlejson(query)
@@ -73,6 +73,20 @@ function webfunc.googlecalc(query)
     if not c then return false end
     local _,_,_,r = c:find("<td nowrap ><h2 class=r style=(.+)><b>(.+)</b></h2><tr><td>")
     return r or false
+end
+
+local function steamcommunityjson(user)
+    local c = http.request(string.format("http://www.andersonmatt.com/sc/profile/%s/&json=1", url.escape(user)))
+    return json.decode(c) or false
+end
+
+--- Looks up a Steam Community user and returns a table with info.
+-- @param user The user's short url.
+-- @return table The result.
+function webfunc.steamcommunity(user)
+    local c = steamcommunityjson(user)
+    if not c then return false end
+    return c or false
 end
 
 --[[local function wikipediajsonsearch(query)
@@ -158,6 +172,17 @@ if juiz.moduleloaded("ccmd", 2) then
         return juiz.reply(recp, sender, result)
     end, "<query>", "uses google's calculator to calculate the query."})
     
+    juiz.addccmd("steamstatus", {function (recp, sender, user)
+        if not user then
+            return juiz.reply(recp, sender, "You need to specify a query!")
+        end
+        local result = webfunc.steamcommunity(user)
+        if not result then
+            return juiz.reply(recp, sender, "Could not fetch data!")
+        end
+        return juiz.reply(recp, sender, "%s - %s", result.steamID, result.stateMessage)
+    end, "<user>", "looks up the current status of a steam community user."})
+    
     --[[
     juiz.addccmd("wikipedia", {function (recp, sender, query)
         if not query then
@@ -173,5 +198,5 @@ if juiz.moduleloaded("ccmd", 2) then
     --]]
 end
 
-juiz.registermodule("webfuncs", "Web functions", 4)
+juiz.registermodule("webfuncs", "Web functions", 5)
 end

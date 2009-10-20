@@ -37,7 +37,7 @@ function userseen(hook, sender, recp)
     return juiz.setdata("seendb-"..sender:lower(), {os.time(), hook, recp})
 end
 
-juiz.addhook("message", function (...) userseen("m", ...) end)
-juiz.addhook("join", function (...) userseen("j", ...) end)
-juiz.addhook("part", function (...) userseen("p", ...) end)
+juiz.addhook("message", function (...) userseen("m", ...) end, "seen-m")
+juiz.addhook("join", function (...) userseen("j", ...) end, "seen-j")
+juiz.addhook("part", function (...) userseen("p", ...) end, "seen-p")
 juiz.registermodule("seen", "Last Seen Command", 2)

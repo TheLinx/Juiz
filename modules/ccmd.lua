@@ -107,6 +107,6 @@ juiz.addhook("message", function(onick, recp, param, ohost)
             end
         end
     end
-end)
+end, "ccmd")
 
 juiz.registermodule("ccmd", "Chat Command Functionality", 2)

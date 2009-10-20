@@ -39,6 +39,6 @@ juiz.addccmd("webinstall", {function (recp, sender, file, host)
         return juiz.reply(recp, sender, "Installation failed!")
     end
 end, "<url>", "downloads and includes a Lua file. (owner only)"})
-juiz.aliasccmd("winstall", "webinstall")
+juiz.aliasccmd("winst", "webinstall")
 
-juiz.registermodule("webinstall", "HTTP Module Installation", 2)
+juiz.registermodule("webinstall", "HTTP Module Installation", 3)

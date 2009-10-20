@@ -11,6 +11,6 @@ juiz.addhook("connected", function ()
     for _,channel in pairs(config.channels) do
         juiz.join(channel)
     end
-end)
+end, "autojoin")
 
 juiz.registermodule("autojoin", "Auto Join", 1)

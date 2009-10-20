@@ -33,7 +33,7 @@ juiz.addccmd("update", {function (recp, sender, _, host)
         end
     end
     f:close()
-    return juiz.reply(recp, sender, "Updated! %s", changed)
+    return juiz.reply(recp, sender, "Updated! %s.", changed)
 end, "", "pulls the latest version from the Juiz git repository"})
 
 juiz.registermodule("update", "Git puller", 2)

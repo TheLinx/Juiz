@@ -229,6 +229,19 @@ function juiz.registermodule(safename, humanname, version, info)
     table.insert(loaded, {safename,version})
 end
 
+--- Loads a module -- the safe way.
+-- @param filename The filename (without modules/) that should be loaded.
+function juiz.loadmodule(filen)
+    if not filen then return false end
+    filename = string.format("modules/%s.lua", filen:gsub(".lua", ""))
+    util.msg("TRACE", "Loading module %s", filen)
+    local ret,err = pcall(dofile, filename)
+    if not ret then
+        util.msg("ERROR", "Could not load module '%s', error: %s", filename:gsub("modules/", ""), err or "nil")
+    end
+    return ret
+end
+
 --- Checks that all dependencies has been loaded.
 -- Note that you have to specify a version. Use 1 if no special
 -- version is required. Errors if dependencies are not satisfied.
@@ -254,28 +267,20 @@ function juiz.depcheck(dmodules,dversions)
             if type(mloaded) == "table" then
                 if mloaded[1] == "old" then
                     util.msg("ERROR", "Module %s is outdated (r%d is installed, r%d is required)", dmodule, mloaded[2], dversion)
+                    error("Dependencies not satisfied.")
+                    return false
                 end
             else
-                util.msg("ERROR", "Module %s is not available", dmodule)
+                util.msg("TRACE", "Attempting to load module %s r%d...", dmodule, dversion)
+                if not juiz.loadmodule(dmodule) then
+                    util.msg("ERROR", "Module %s is not available", dmodule)
+                    error("Dependencies not satisfied.")
+                    return false
+                end
             end
-            error("Dependencies not satisfied.")
-            return false
         end
     end
     return true
-end
-
---- Loads a module -- the safe way.
--- @param filename The filename (without modules/) that should be loaded.
-function juiz.loadmodule(filen)
-    if not filen then return false end
-    filename = string.format("modules/%s.lua", filen:gsub(".lua", ""))
-    util.msg("TRACE", "Loading module %s", filen)
-    local ret,err = pcall(dofile, filename)
-    if not ret then
-        util.msg("ERROR", "Could not load module '%s', error: %s", filename:gsub("modules/", ""), err or "nil")
-    end
-    return ret
 end
 
 -- Let's load the config

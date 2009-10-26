@@ -19,7 +19,7 @@ juiz.addccmd("tell", {function (recp, sender, message)
         return juiz.reply(recp, sender, "You can't do that.")
     end
     util.msg("TRACE", "%s left a message to %s: %s", sender, messageto, messagetext)
-    juiz.reply(recp, sender, "Okay, I'll tell %s that when he/she is back.", messageto)
+    juiz.reply(recp, sender, "Okay, I'll tell %s that when "..(juiz.getdata("genderdb-"..messageto:lower()) or "he/she").." is back.", messageto)
     juiz.adddata("telldb-"..messageto:lower(), {sender, messagetext})
     return true
 end, "<user> <message>", "takes a message for another user, then tells them when they come back."})
@@ -37,6 +37,6 @@ function usercheck(sender, recp)
     juiz.removedata("telldb-"..sender:lower())
 end
 
-juiz.addhook("message", usercheck)
-juiz.addhook("join", usercheck)
+juiz.addhook("message", usercheck, "tell-m")
+juiz.addhook("join", usercheck, "tell-j")
 juiz.registermodule("tell", "Tell Command", 2)

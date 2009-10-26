@@ -45,22 +45,20 @@ end
 -- @param mtext The string to print.
 -- @param ... Extra parameters to be applied to mtext with a string.format.
 function util.msg(mtype, mtext, ...)
-    local text = ""
-    if mtype == "CHATLOG" then
-        text = string.format(mtext, ...)
-    elseif mtype == "NOTIFY" then
-        text = string.format(mtext, ...)
-    elseif mtype == "INSTALL" then
-        text = string.format("Loaded %s", string.format(mtext, ...))
+    local _,text = pcall(function(t, ...) return string.format(t, ...) end, mtext, ...)
+    text = text or mtext
+    local out = text
+    if mtype == "INSTALL" then
+        out = string.format("Loaded %s", text)
     elseif mtype == "ERROR" then
-        text = string.format("%s: %s", mtype, string.format(mtext, ...))
+        out = string.format("ERROR: %s", text)
     elseif DEBUG and (mtype == "TRACE" or mtype == "DEBUG") then
-        text = string.format("%s: %s", mtype, string.format(mtext, ...))
+        out = string.format("%s: %s", mtype, text)
     elseif DISPLAYRAWDATA and mtype == "RAW" then
-        text = string.format("RAW DATA: %s", string.format(mtext, ...))
+        out = string.format("RAW DATA: %s", text)
     end
-    if text ~= "" then
-        print(text)
+    if out ~= "" then
+        print(out)
     end
 end
 
@@ -101,9 +99,11 @@ end
 -- channel joins, et.c.
 -- @param trigger The event to hook to.
 -- @param func The function that should be triggered on the event.
-function juiz.addhook(trigger, func)
-    util.msg("TRACE", "Hooking %s to trigger %s", tostring(func), trigger)
-    return table.insert(hooks, {trigger, func})
+-- @param identifier (Optional) 
+function juiz.addhook(trigger, func, identifier)
+    util.msg("TRACE", "Hooking %s to trigger %s with identifier %s", tostring(func), trigger, identifier or "nil")
+    hooks[identifier or #hooks + 1] = {trigger, func}
+    return true
 end
 
 --- Call all functions hooked to an event.

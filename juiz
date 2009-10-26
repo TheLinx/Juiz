@@ -2,7 +2,7 @@
 pcall(function () require("luarocks.require") end)
 require("socket")
 local tcp,alive,lastsend,sendqueue,configfile = socket.tcp(),true,0,{},"config"
-version,url,config,jmodule,loaded,hook,hooks,juiz,util = "Juiz IRC Bot 1.2.0","http://github.com/thelinx/Juiz",{},{},{},{},{},{},{}
+version,url,config,jmodule,loaded,hook,hooks,juiz,util = "Juiz IRC Bot 1.3.0 MINEFIELD","http://github.com/thelinx/Juiz",{},{},{},{},{},{},{}
 print(string.format("This is the %s. (%s)", version, url))
 for _,v in pairs(arg) do
     if v == "--help" then
@@ -127,14 +127,14 @@ local function connect()
     local cstatus,cerror = tcp:connect(config.server, config.port)
     if not cstatus then
         -- Something went wrong!
-        util.msg("ERROR", string.format("Connection to %s:%d failed: %s", config.server, config.port, cerror))
+        util.msg("ERROR", "Connection to %s:%d failed: %s", config.server, config.port, cerror)
         error()
         return false
     end
     util.msg("NOTIFY", "Connected.")
-    local sstatus, serror = send(string.format("NICK %s\r\nUSER %s %s %s :Tag\r\n", config.nick, config.nick, config.nick, config.server))
+    local sstatus, serror = send(string.format("NICK %s\r\nUSER %s %s %s :%s\r\n", config.nick, config.nick, config.nick, config.server, version))
     if not sstatus then
-        util.msg("ERROR", string.format("Sending login failed: %s", serror))
+        util.msg("ERROR", "Sending login failed: %s", serror)
         error()
     end
     util.msg("TRACE", "Sent login.")
@@ -267,14 +267,14 @@ function juiz.depcheck(dmodules,dversions)
             if type(mloaded) == "table" then
                 if mloaded[1] == "old" then
                     util.msg("ERROR", "Module %s is outdated (r%d is installed, r%d is required)", dmodule, mloaded[2], dversion)
-                    error("Dependencies not satisfied.")
+                    error("Dependencies not satisfied.", 2)
                     return false
                 end
             else
                 util.msg("TRACE", "Attempting to load module %s r%d...", dmodule, dversion)
                 if not juiz.loadmodule(dmodule) then
                     util.msg("ERROR", "Module %s is not available", dmodule)
-                    error("Dependencies not satisfied.")
+                    error("Dependencies not satisfied.", 2)
                     return false
                 end
             end
@@ -295,7 +295,7 @@ config.pass = "ADMIN PASSWORD"
 config.trigger = "TRIGGER"
 -- Add additional configuration items after this line, refer to individual module documentation for more information.]])
     fopn:close()
-    util.msg("NOTIFY", "Please edit the configuration file created in %s.", CUSTOMCONFIG or "the current directory")
+    util.msg("NOTIFY", "Please edit the configuration file created in %s.", configfile)
     alive = false
 else
     fopn:close()

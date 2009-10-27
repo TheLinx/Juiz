@@ -18,7 +18,6 @@ Host: %s
 ]], config.forumpath, config.forumhost)
 local filter = [[<a href="./viewtopic.php%?f=[0-9]&amp;t=([0-9]+).-" class="topictitle">(.-)</a>.-by <a .->.-</a>.-by <a .->(.-)</a>.-<br />on (.-)<br />]]
 
-
 juiz.addccmd("activetopics", {function(recp, sender, message, host)
 	local target = recp:sub(1, 1) == '#' and recp or sender
 	local tnum = tonumber(message) or 3
@@ -36,7 +35,11 @@ juiz.addccmd("activetopics", {function(recp, sender, message, host)
 end, "[number of messages]", "fetches a list of active topics from the forums."})
 
 juiz.addccmd("topiclink", {function(recp, sender, message, host)
-	juiz.reply(recp, sender, "http://www.love2d.org/forum/viewtopic.php?t=" .. tonumber(message) .. "&view=unread#unread")
+    if not tonumber(message) then
+        return juiz.reply(recp, sender, "You forgot the topic id!")
+    end
+    local message = tonumber(message)
+	juiz.reply(recp, sender, "http://www.love2d.org/forum/viewtopic.php?t=" .. message .. "&view=unread#unread")
 end, "<topic id>", "returns a link to a topic id, as retrieved with activetopics."})
 
 juiz.registermodule("activetopics", "Active Topics list from forums", 1)

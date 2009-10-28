@@ -99,7 +99,7 @@ end
 -- channel joins, et.c.
 -- @param trigger The event to hook to.
 -- @param func The function that should be triggered on the event.
--- @param identifier (Optional) 
+-- @param identifier (Optional) Prevents hook duplication.
 function juiz.addhook(trigger, func, identifier)
     util.msg("TRACE", "Hooking %s to trigger %s with identifier %s", tostring(func), trigger, identifier or "nil")
     hooks[identifier or #hooks + 1] = {trigger, func}

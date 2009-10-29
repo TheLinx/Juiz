@@ -132,7 +132,7 @@ local function connect()
         return false
     end
     util.msg("NOTIFY", "Connected.")
-    local sstatus, serror = send(string.format("NICK %s\r\nUSER %s %s %s :%s\r\n", config.nick, config.nick, config.nick, config.server, version))
+    local sstatus, serror = send(string.format("NICK %s\r\nUSER %s %s %s :%s\r\n", config.nick, os.getenv("USER"), io.popen("hostname"):read("*line"), config.server, version))
     if not sstatus then
         util.msg("ERROR", "Sending login failed: %s", serror)
         error()

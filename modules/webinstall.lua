@@ -12,14 +12,23 @@ juiz.depcheck({"util","ccmd"}, {1,1})
 -- @param file The URI of the file to download.
 -- @return boolean true or false depending on success of juiz.loadmodule()
 function juiz.webinstall(file)
-    if not file:find("/") then return false end
     local fcon,_,h = http.request(file)
-    local fnam = file
-    while true do
-        local i = string.find(s, "/")
-        if not i then break end
-        fnam = string.sub(s, i+1)
+    local fnam = false
+    for _,v in pairs(h) do
+        util.msg("TRACE", "Checking for filename in '%s'", v)
+        if string.find(v, "lua") then
+            _,_,fnam = string.find(v, '([^/"]+).lua')
+            util.msg("TRACE", "Got filename: %s.lua", fnam)
+        end
     end
+    if not fnam then
+		fnam = file
+		while true do
+			local i = string.find(fnam, "/")
+			if not i then break end
+			fnam = string.sub(fnam, i+1)
+		end
+	end
     local fopn = assert(io.open("modules/"..fnam..".lua", "w"))
     fopn:write(fcon)
     fopn:close()

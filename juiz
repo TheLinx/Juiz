@@ -55,7 +55,7 @@ function util.msg(mtype, mtext, ...)
     elseif DEBUG and (mtype == "TRACE" or mtype == "DEBUG") then
         out = string.format("%s: %s", mtype, text)
     elseif DISPLAYRAWDATA and mtype == "RAW" then
-        out = string.format("RAW DATA: %s", text)
+        out = string.format("%s", text)
     end
     if out ~= "" then
         print(out)
@@ -77,6 +77,7 @@ end
 -- applied automatically.
 -- @param stext The data to send.
 function juiz.send(stext)
+    util.msg("RAW", "<-- %s", stext)
     if os.time() - lastsend > 0.1 then
         send(stext.."\r\n")
     else
@@ -142,6 +143,7 @@ local function connect()
 end
 
 local function processdata(pdata)
+    util.msg("RAW", "--> %s", pdata)
     local origin, command, recp, param = string.match(pdata, "^:(%S+) (%S+) (%S+)[^:]*:(.+)")
     if not origin then origin, command, param = string.match(pdata, "^:(%S+) (%S+)[^:]*:(.+)") end
     if not origin then origin, command, param = string.match(pdata, "^:(%S+) (%S+) (%S+)(.*)") end
@@ -151,7 +153,6 @@ local function processdata(pdata)
         util.msg("TRACE", "Unparsed: " .. pdata)
         return true
     end
-    util.msg("RAW", "origin: %s, command: %s, recp: %s, param: %s", origin or "nil", command or "nil", recp or "nil", param or "nil")
     if origin ~= nil then onick,ohost = origin:match("^(%S+)!(%S+)") end
     if command:lower() == "ping" then
         juiz.send(string.format("PONG %s", param))

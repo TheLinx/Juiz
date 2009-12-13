@@ -9,7 +9,7 @@ juiz.depcheck({"util"},{1})
 
 juiz.addhook("connected", function ()
     for _,channel in pairs(config.channels) do
-        juiz.join(channel)
+        juiz.join(channel, (config.channelpasswords and config.channelpasswords[channel]))
     end
 end, "autojoin")
 

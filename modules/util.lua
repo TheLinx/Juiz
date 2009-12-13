@@ -6,11 +6,15 @@
 
 --- Makes Juiz join a channel.
 -- @param channel The channel to join.
-function juiz.join(channel)
+function juiz.join(channel, pass)
     if channel:sub(0,1) == "#" then
         channel = channel:sub(2)
     end
-    juiz.send(string.format("JOIN #%s", channel))
+    if not pass then
+        return juiz.send(string.format("JOIN #%s", channel))
+    else
+        return juiz.send(string.format("JOIN #%s %s", channel, pass))
+    end
 end
 
 --- Makes Juiz leave a channel.

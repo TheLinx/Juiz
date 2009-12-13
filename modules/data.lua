@@ -51,7 +51,7 @@ function juiz.savedata()
     util.msg("TRACE", "Saving data...")
     fcon = json.encode(datatable)
     util.msg("TRACE", "Generated this data: %s", fcon)
-    local fopn = io.open("saved", "w")
+    local fopn = io.open(config.datafile or "saved", "w")
     fopn:write(fcon)
     fopn:close()
     util.msg("NOTIFY", "Saved data.")
@@ -59,7 +59,7 @@ function juiz.savedata()
 end
 
 -- Load the saved data on load
-local fopn = io.open("saved", "r")
+local fopn = io.open(config.datafile or "saved", "r")
 if fopn then
     local fcon = fopn:read("*all")
     if fcon:len() > 1 then

@@ -50,7 +50,7 @@ function breaksilence(hook, sender, recp)
 end
 
 juiz.addhook("message", function (...) breaksilence("m", ...) end, "kotc-m")
-juiz.addhook("join", function (...) breaksilence("j", ...) end, "kotc-j")
-juiz.addhook("part", function (...) breaksilence("p", ...) end, "kotc-p")
+--juiz.addhook("join", function (...) breaksilence("j", ...) end, "kotc-j")
+--juiz.addhook("part", function (...) breaksilence("p", ...) end, "kotc-p")
 
 juiz.registermodule("kotc", "King Of The Channel Command", 1)

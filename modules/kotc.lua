@@ -10,8 +10,8 @@
 juiz.depcheck({'util', "data"},{1,3})
 
 juiz.addccmd("kotc", {function (recp, sender, msg)
-    local which, channel = unpack(util.explode(msg or '',' '))
-    which = which or 'last' -- one of 'last', 'record'
+    local which, channel = unpack(util.explode(' ', msg or ''))
+    which = (#which > 1 and which) or 'last' -- one of 'last', 'record'
     channel = channel or recp
     local kotcdata = juiz.getdata("kotc-"..channel.."-"..which)
     util.msg("TRACE", "kotc request by %s %s", sender)

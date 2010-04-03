@@ -7,11 +7,12 @@
 ---  * Utility functions
 --- License: MIT
 
-juiz.depcheck({'util', "data"},{1,3})
+juiz.depcheck({"util", "data"},{1,3})
 
 juiz.addccmd("kotc", {function (recp, sender, msg)
     local which, channel = unpack(util.explode(' ', msg or ''))
-    which = (#which > 1 and which) or 'last' -- one of 'last', 'record'
+    if not which or which=='' then which = 'last' end -- one of 'last', 'record'
+    if not channel or channel=='' then channel = recp end
     channel = channel or recp
     local kotcdata = juiz.getdata("kotc-"..channel.."-"..which)
     util.msg("TRACE", "kotc request by %s %s", sender)
@@ -42,7 +43,7 @@ function breaksilence(hook, sender, recp)
         local r = juiz.getdata("kotc-"..recp..'-record')
         if not r or prevlength > (r[4]-r[1]) then
             juiz.setdata("kotc-"..recp..'-record', p)
-            juiz.say(recp, 'Congrats to %s, new KOTC record holder!', p[3])
+            juiz.say(recp, "Congratulations to %s, new King of the Chat!", p[3])
         end
     end
     return juiz.setdata("kotc-"..recp..'-current', {curtime, hook, sender})

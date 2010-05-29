@@ -39,7 +39,7 @@ juiz.addhook("message", function (sender, recp, message)
 	if not (message:find("youtube%.com/watch") or message:find("youtu%.be/")) then return end
 	local result = juiz.ytlookup(message:match("v=(...........)"), "author,title")
 	if not result then
-		return juiz.reply(recp, sender, "You need to specify a valid video ID")
+		return juiz.reply(recp, sender, "That's not a real Youtube video!")
 	end
 	local author,title = result.entry.author[1].name["$t"],result.entry.title["$t"]
 	return juiz.say(recp, "Video info: %s by %s", title, author)

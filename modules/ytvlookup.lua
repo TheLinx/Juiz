@@ -36,8 +36,12 @@ end, "<id>", "looks up title and author of a Youtube video."})
 juiz.aliasccmd("ytv", "ytlookup")
 
 juiz.addhook("message", function (sender, recp, message)
-	if not (message:find("youtube%.com/watch") or message:find("youtu%.be/")) then return end
-	local result = juiz.ytlookup(message:match("v=(...........)"), "author,title")
+	local result
+	if message:find("youtube%.com/watch") then
+		result = juiz.ytlookup(message:match("v=(...........)"), "author,title")
+	elseif message:find("youtu%.be/")) then
+		result = juiz.ytlookup(message:match("%.be/(...........)"), "author,title")
+	else return end
 	if not result then
 		return juiz.reply(recp, sender, "That's not a real Youtube video!")
 	end

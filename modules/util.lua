@@ -85,6 +85,17 @@ function juiz.reply(rrecp, rsender, rtext, ...)
     end
 end
 
+--- Send an action message.
+-- This function makes Juiz do an action, either via private messaging
+-- or to an entire channel.
+-- @param srecp The recipient of the action.
+-- @param stext The action.
+-- @param ... Extra parameters to be applied to stext with a string.format.
+-- @author Adam Hintz (http://github.com/adam000)
+function juiz.me(srecp, stext, ...)
+    juiz.send(string.format("PRIVMSG %s :\001ACTION %s\001", srecp, string.format(stext, ...)))
+end
+
 util.require("socket.http")
 util.require("mime")
-juiz.registermodule("util", "Utility Functions", 3)
+juiz.registermodule("util", "Utility Functions", 4)
